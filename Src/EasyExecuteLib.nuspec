@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata  minClientVersion="3.3.0">
+    <id>@project@</id>
+    <version>@build.number@</version>
+    <authors>@authors@</authors>
+    <owners>@authors@</owners>
+    <summary>@summary@</summary>
+    <licenseUrl>https://github.com/contactsamie/EasyExecute/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/contactsamie/EasyExecute</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>@description@</description>
+    <releaseNotes>@releaseNotes@</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>Concurrency</tags>
+    @dependencies@
+    @references@
+  </metadata>
+  <files>
+    <file src="EasyExecuteLib.dll" target="lib\net45" />
+    <file src="EasyExecute.Common.dll" target="lib\net45" />
+    <file src="EasyExecute.Messages.dll" target="lib\net45" />
+    <file src="EasyExecute.Reception.dll" target="lib\net45" />
+    <file src="EasyExecute.ServiceWorker.dll" target="lib\net45" />
+    <file src="EasyExecute.ActorSystemFactory.dll" target="lib\net45" />
+    <file src="readme.txt" target="" />
+  </files>
+</package>
