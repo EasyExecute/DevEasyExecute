@@ -6,8 +6,9 @@
     <authors>@authors@</authors>
     <owners>@authors@</owners>
     <summary>@summary@</summary>
-    <licenseUrl>https://github.com/contactsamie/EasyExecute/blob/master/LICENSE.txt</licenseUrl>
-    <projectUrl>https://github.com/contactsamie/EasyExecute</projectUrl>
+    <licenseUrl>https://github.com/EasyExecute/DevEasyExecute/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/EasyExecute/DevEasyExecute</projectUrl>
+     <iconUrl>https://easyexecute.github.io/easyexecute.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>@description@</description>
     <releaseNotes>@releaseNotes@</releaseNotes>
