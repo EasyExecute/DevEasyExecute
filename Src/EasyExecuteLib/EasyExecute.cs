@@ -11,31 +11,35 @@ namespace EasyExecuteLib
 {
     public class EasyExecute
     {
-        private  EasyExecuteMain _easyExecuteMain;
+        private EasyExecuteMain _easyExecuteMain;
         private ActorSystemCreator ActorSystemCreator { get; set; }
         internal TimeSpan MaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
         internal IActorRef ReceptionActorRef { get; set; }
+        internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
+
+        #region Constructors
+
 
         public EasyExecute(
-            TimeSpan? maxExecutionTimePerAskCall 
-          , string serverActorSystemName 
-          , ActorSystem actorSystem 
+            TimeSpan? maxExecutionTimePerAskCall
+          , string serverActorSystemName
+          , ActorSystem actorSystem
           , string actorSystemConfig = null
           , TimeSpan? purgeInterval = null
           , Action<Worker> onWorkerPurged = null)
         {
             InitializeEasyExecute(
-            maxExecutionTimePerAskCall 
-          ,  serverActorSystemName 
-          ,  actorSystem 
-          ,  actorSystemConfig 
-          ,  purgeInterval 
-          ,  onWorkerPurged);
+            maxExecutionTimePerAskCall
+          , serverActorSystemName
+          , actorSystem
+          , actorSystemConfig
+          , purgeInterval
+          , onWorkerPurged);
         }
         public EasyExecute(
-           TimeSpan? maxExecutionTimePerAskCall 
-         , ActorSystem actorSystem 
-         , string actorSystemConfig 
+           TimeSpan? maxExecutionTimePerAskCall
+         , ActorSystem actorSystem
+         , string actorSystemConfig
          , TimeSpan? purgeInterval = null
          , Action<Worker> onWorkerPurged = null)
         {
@@ -48,8 +52,8 @@ namespace EasyExecuteLib
           , onWorkerPurged);
         }
         public EasyExecute(
-          ActorSystem actorSystem 
-        , string actorSystemConfig 
+          ActorSystem actorSystem
+        , string actorSystemConfig
         , TimeSpan? purgeInterval = null
         , Action<Worker> onWorkerPurged = null)
         {
@@ -74,7 +78,7 @@ namespace EasyExecuteLib
           , purgeInterval
           , onWorkerPurged);
         }
-        private void  InitializeEasyExecute(
+        private void InitializeEasyExecute(
             TimeSpan? maxExecutionTimePerAskCall = null
           , string serverActorSystemName = null
           , ActorSystem actorSystem = null
@@ -93,8 +97,8 @@ namespace EasyExecuteLib
             MaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? MaxExecutionTimePerAskCall;
         }
 
-        internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
-        
+        #endregion
+
         #region REQUEST ONLY NO COMMAND
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
          string id

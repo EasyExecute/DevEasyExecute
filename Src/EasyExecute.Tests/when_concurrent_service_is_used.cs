@@ -16,20 +16,13 @@ namespace EasyExecute.Tests
         public void test()
         {
             var service = new EasyExecuteLib.EasyExecute();
-            var t= ( service.ExecuteAsync("1", () =>
-                {
-                    return  Task.FromResult(new object());
-                }, (finalResult) =>
-                {
-                    return false;
-                }, 
+            var t= service.ExecuteAsync("1", 
+                () => Task.FromResult(new object()), 
+                (finalResult) => false, 
                 TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
                 {
                     ReturnExistingResultWhenDuplicateId = true
-                }, (executionResult) =>
-                {
-                    return executionResult.Result;
-                })).Result.Result;
+                }, (executionResult) => executionResult.Result).Result.Result;
 
             Assert.NotNull(t);
             var history=  service.GetWorkHistoryAsync().Result;
@@ -39,20 +32,13 @@ namespace EasyExecute.Tests
         public void test3()
         {
             var service = new EasyExecuteLib.EasyExecute();
-            var t = (service.ExecuteAsync("1",DateTime.UtcNow, (d) =>
-            {
-                return Task.FromResult(new {time=d});
-            }, (finalResult) =>
-            {
-                return false;
-            }, 
+            var t = (service.ExecuteAsync("1",DateTime.UtcNow,
+                (d) => Task.FromResult(new {time=d}),
+                (finalResult) => false, 
                 TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
                 {
                     ReturnExistingResultWhenDuplicateId = true
-                }, (executionResult) =>
-                {
-                    return executionResult.Result;
-                })).Result.Result;
+                }, (executionResult) => executionResult.Result)).Result.Result;
 
             Assert.NotNull(t);
             var history = service.GetWorkHistoryAsync().Result;
