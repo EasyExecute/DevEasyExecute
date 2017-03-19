@@ -11,107 +11,266 @@ namespace EasyExecuteLib
 {
     public class EasyExecute
     {
+        private readonly EasyExecuteMain _easyExecuteMain;
+        private ActorSystemCreator ActorSystemCreator { get; }
+        internal TimeSpan MaxExecutionTimePerAskCall { get; }
+        internal IActorRef ReceptionActorRef { get; }
         public EasyExecute(TimeSpan? maxExecutionTimePerAskCall = null, string serverActorSystemName = null, ActorSystem actorSystem = null, string actorSystemConfig = null, TimeSpan? purgeInterval = null, Action<Worker> onWorkerPurged = null)
         {
+            serverActorSystemName = (string.IsNullOrEmpty(serverActorSystemName) && actorSystem == null)
+                ? Guid.NewGuid().ToString()
+                : serverActorSystemName;
+            _easyExecuteMain = new EasyExecuteMain(this);
             ActorSystemCreator = new ActorSystemCreator();
-
-            if (string.IsNullOrEmpty(serverActorSystemName) && actorSystem == null)
-            {
-                serverActorSystemName = Guid.NewGuid().ToString();
-            }
-
             ActorSystemCreator.CreateOrSetUpActorSystem(serverActorSystemName, actorSystem, actorSystemConfig);
             ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval, onWorkerPurged)));
             MaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? TimeSpan.FromSeconds(5);
         }
 
-        private ActorSystemCreator ActorSystemCreator { get; }
-        private TimeSpan MaxExecutionTimePerAskCall { get; }
+        private const bool DefaultReturnExistingResultWhenDuplicateId = true;
+        
 
-        private IActorRef ReceptionActorRef { get; }
-
-        //public async Task ExecuteAsync(Action operation, string id, Func<object, bool> hasFailed = null, bool returnExistingResultWhenDuplicateId = true, TimeSpan? maxExecutionTimePerAskCall = null, Func<ExecutionResult<object>, ExecutionResult<object>> transformResult = null)
-        //{
-        //    await ExecuteAsync<object>(async () =>
-        //    {
-        //        operation();
-        //        return await Task.FromResult(new object());
-        //    }, id, hasFailed, returnExistingResultWhenDuplicateId, maxExecutionTimePerAskCall, transformResult);
-        //}
-
-
-
-        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(string id,  Func<Task<TResult>> operation, Func<TResult, bool> hasFailed = null, bool returnExistingResultWhenDuplicateId = true, TimeSpan? maxExecutionTimePerAskCall = null, Func<ExecutionResult<TResult>, TResult> transformResult = null, bool storeCommands = false) where TResult : class
+        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
+           string id
+         , Func<Task<TResult>> operation
+         , Func<ExecutionResult<TResult>, TResult> transformResult 
+         , bool storeCommands = false)
+           where TResult : class
         {
-            if (operation == null) throw new ArgumentNullException(nameof(operation));
+            
             if (id == null) throw new ArgumentNullException(nameof(id));
-            return Execute(id, new object(), (o)=> operation(), hasFailed, returnExistingResultWhenDuplicateId, maxExecutionTimePerAskCall, transformResult,storeCommands);
-        }
-        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult,TCommand>(string id, TCommand command, Func<TCommand,Task<TResult>> operation, Func<TResult, bool> hasFailed=null, bool returnExistingResultWhenDuplicateId=true, TimeSpan? maxExecutionTimePerAskCall = null, Func<ExecutionResult<TResult>,TResult> transformResult = null,bool storeCommands= false) where TResult : class
-        {
-            if (operation == null) throw new ArgumentNullException(nameof(operation));
-            if (id == null) throw new ArgumentNullException(nameof(id));
-            return Execute(id,command, operation, hasFailed, returnExistingResultWhenDuplicateId, maxExecutionTimePerAskCall, transformResult,storeCommands);
+            return _easyExecuteMain.Execute(
+                id
+              , new object()
+              , (o) => operation()
+              , (r) => false
+              , DefaultReturnExistingResultWhenDuplicateId
+              , null
+              , transformResult
+              , storeCommands);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <typeparam name="TCommand"></typeparam>
-        /// <param name="id"></param>
-        /// <param name="operation"></param>
-        /// <param name="hasFailed"></param>
-        /// <param name="returnExistingResultWhenDuplicateId"></param>
-        /// <param name="maxExecutionTimePerAskCall"></param>
-        /// <param name="transformResult">Also passed boolean if error contains existing result</param>
-        /// <returns></returns>
-        private async Task<ExecutionResult<TResult>> Execute<TResult, TCommand>(string id, TCommand command, Func<TCommand,Task<TResult>> operation, Func<TResult,bool> hasFailed=null, bool returnExistingResultWhenDuplicateId=true, TimeSpan? maxExecutionTimePerAskCall = null,Func<ExecutionResult<TResult>, TResult> transformResult=null,bool storeCommands=false ) where TResult : class
+        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
+           string id
+         , Func<Task<TResult>> operation
+         , TimeSpan? maxExecutionTimePerAskCall = null
+         , Func<ExecutionResult<TResult>, TResult> transformResult = null
+         , bool storeCommands = false)
+           where TResult : class
         {
-            if (operation == null) throw new ArgumentNullException(nameof(operation));
+            
             if (id == null) throw new ArgumentNullException(nameof(id));
+            return _easyExecuteMain.Execute(
+                id
+              , new object()
+              , (o) => operation()
+              , (r) => false
+              , DefaultReturnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , transformResult
+              , storeCommands);
+        }
 
-            IEasyExecuteResponseMessage result;
-            var maxExecTime = maxExecutionTimePerAskCall ?? MaxExecutionTimePerAskCall;
-            try
-            {
-                result = await ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(new SetWorkMessage(id, command, new WorkFactory(async (o)=> await operation((TCommand)o), (r) => hasFailed?.Invoke((TResult)r) ?? false),storeCommands), maxExecTime).ConfigureAwait(false);
 
-            }
-            catch (Exception e)
+        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
+            string id
+          , Func<Task<TResult>> operation
+          , bool returnExistingResultWhenDuplicateId 
+          , TimeSpan? maxExecutionTimePerAskCall = null
+          , Func<ExecutionResult<TResult>, TResult> transformResult = null
+          , bool storeCommands = false)
+            where TResult : class
+        {
+            
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            return _easyExecuteMain.Execute(
+                id
+              , new object()
+              , (o) => operation()
+              , (r) => false
+              , returnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , transformResult
+              , storeCommands);
+        }
+
+
+        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
+            string id
+          , Func<Task<TResult>> operation
+          , Func<TResult, bool> hasFailed
+          , bool returnExistingResultWhenDuplicateId = DefaultReturnExistingResultWhenDuplicateId
+          , TimeSpan? maxExecutionTimePerAskCall = null
+          , Func<ExecutionResult<TResult>, TResult> transformResult = null
+          , bool storeCommands = false)
+            where TResult : class
+        {
+            
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            return _easyExecuteMain.Execute(
+                id
+              , new object()
+              , (o) => operation()
+              , hasFailed
+              , returnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , transformResult
+              , storeCommands);
+        }
+
+
+        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
+           string id
+         , TCommand command
+         , Func<TCommand, Task<TResult>> operation
+         , TimeSpan? maxExecutionTimePerAskCall = null
+         , Func<ExecutionResult<TResult>, TResult> transformResult = null
+         , bool storeCommands = false) where TResult : class
+        {
+            
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            return _easyExecuteMain.Execute(
+                id
+              , command
+              , operation
+              , (r) => false
+              , DefaultReturnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , transformResult
+              , storeCommands);
+        }
+
+
+        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
+            string id
+          , TCommand command
+          , Func<TCommand, Task<TResult>> operation
+          , bool returnExistingResultWhenDuplicateId = DefaultReturnExistingResultWhenDuplicateId
+          , TimeSpan? maxExecutionTimePerAskCall = null
+          , Func<ExecutionResult<TResult>, TResult> transformResult = null
+          , bool storeCommands = false) where TResult : class
+        {
+            
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            return _easyExecuteMain.Execute(
+                id
+              , command
+              , operation
+              , (r) => false
+              , returnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , transformResult
+              , storeCommands);
+        }
+
+
+       
+
+
+        public async Task<ExecutionResult> ExecuteAsync<TCommand>(
+           string id
+         , TCommand command
+         , Action<TCommand> operation
+         , bool returnExistingResultWhenDuplicateId = DefaultReturnExistingResultWhenDuplicateId
+         , TimeSpan? maxExecutionTimePerAskCall = null
+         , bool storeCommands = false) 
+        {
+            
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            var result= await _easyExecuteMain.Execute<object,TCommand>(
+                id
+              , command
+              , (o) => {operation(o);return Task.FromResult(new object());}
+              , (r)=>false
+              , returnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , (r)=>r.Result
+              , storeCommands);
+            return  new ExecutionResult()
             {
-                result= new SetWorkErrorMessage($"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} ",id);
-            }
-            var finalResult = new ExecutionResult<TResult>();
+                Errors = result.Errors,
+                Succeeded = result.Succeeded
+            };
+        }
+
+
+        public async Task<ExecutionResult> ExecuteAsync(
+          string id
+        , Action operation
+        , bool returnExistingResultWhenDuplicateId = DefaultReturnExistingResultWhenDuplicateId
+        , TimeSpan? maxExecutionTimePerAskCall = null
+        , bool storeCommands = false)
+        {
+            
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            var result = await _easyExecuteMain.Execute<object, object>(
+                id
+              , new object()
+              , (o) => { operation(); return Task.FromResult(new object()); }
+              , (r) => false
+              , returnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , (r) => r.Result
+              , storeCommands);
+            return new ExecutionResult()
+            {
+                Errors = result.Errors,
+                Succeeded = result.Succeeded
+            };
+        }
+
+        
+
+        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
+           string id
+         , TCommand command
+         , Func<TCommand, Task<TResult>> operation
+         , Func<TResult, bool> hasFailed
+         , bool returnExistingResultWhenDuplicateId = DefaultReturnExistingResultWhenDuplicateId
+         , TimeSpan? maxExecutionTimePerAskCall = null
+         , Func<ExecutionResult<TResult>, TResult> transformResult = null
+         , bool storeCommands = false) where TResult : class
+        {
+            
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            return _easyExecuteMain.Execute(
+                id
+              , command
+              , operation
+              , hasFailed
+              , returnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , transformResult
+              , storeCommands);
+        }
+
+
+        public Task<ExecutionResult<TResult>> ExecuteEveryAsync<TResult, TCommand>(
+          TCommand command
+        , Func<TCommand, Task<TResult>> operation
+        , Func<TResult, bool> hasFailed
+        , bool returnExistingResultWhenDuplicateId = DefaultReturnExistingResultWhenDuplicateId
+        , TimeSpan? maxExecutionTimePerAskCall = null
+        , Func<ExecutionResult<TResult>, TResult> transformResult = null
+        , bool storeCommands = false) where TResult : class
+        {
            
-            if (result is SetWorkErrorMessage)
-            {
-                finalResult.Errors.Add((result as SetWorkErrorMessage).Error);
-            }
-            else if(result is SetCompleteWorkErrorMessage)
-            {
-                finalResult.Errors.Add((result as SetCompleteWorkErrorMessage).Error);
-                if (returnExistingResultWhenDuplicateId)
-                {
-                    finalResult.Result = (result as SetCompleteWorkErrorMessage)?.LastSuccessfullResult as TResult;
-                
-                }
-            }
-            else
-            {
-                finalResult.Succeeded = true;
-                finalResult.Result = (result as SetWorkSucceededMessage)?.Result as TResult;
-            }
-            finalResult.Result= transformResult == null ? finalResult.Result : transformResult(finalResult);
-            return finalResult;
+            return _easyExecuteMain.Execute(
+                Guid.NewGuid().ToString()
+              , command
+              , operation
+              , hasFailed
+              , returnExistingResultWhenDuplicateId
+              , maxExecutionTimePerAskCall
+              , transformResult
+              , storeCommands);
         }
 
-        public async Task<ExecutionResult<GetWorkHistoryCompletedMessage>> GetWorkHistoryAsync(string workId=null)
+        public async Task<ExecutionResult<GetWorkHistoryCompletedMessage>> GetWorkHistoryAsync(string workId = null)
         {
             try
             {
-                var result = await ReceptionActorRef.Ask<GetWorkHistoryCompletedMessage>(new GetWorkHistoryMessage(workId??null))
-                    .ConfigureAwait(false);
+                var result = await ReceptionActorRef.Ask<GetWorkHistoryCompletedMessage>(new GetWorkHistoryMessage(workId));
                 return new ExecutionResult<GetWorkHistoryCompletedMessage>()
                 {
                     Succeeded = true,
@@ -123,13 +282,12 @@ namespace EasyExecuteLib
                 return new ExecutionResult<GetWorkHistoryCompletedMessage>()
                 {
                     Succeeded = false,
-                    Errors = new List<string>() { e.Message+" - "+e.InnerException?.Message},
-                    Result = new GetWorkHistoryCompletedMessage(new List<Worker>(),DateTime.UtcNow)
+                    Errors = new List<string>() { e.Message + " - " + e.InnerException?.Message },
+                    Result = new GetWorkHistoryCompletedMessage(new List<Worker>(), DateTime.UtcNow)
                 };
 
             }
         }
-
 
     }
 }

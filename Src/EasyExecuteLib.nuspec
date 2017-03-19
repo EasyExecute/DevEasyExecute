@@ -8,7 +8,7 @@
     <summary>@summary@</summary>
     <licenseUrl>https://github.com/EasyExecute/DevEasyExecute/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/EasyExecute/DevEasyExecute</projectUrl>
-     <iconUrl>https://easyexecute.github.io/easyexecute.png</iconUrl>
+    <iconUrl>https://easyexecute.github.io/easyexecute.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>@description@</description>
     <releaseNotes>@releaseNotes@</releaseNotes>

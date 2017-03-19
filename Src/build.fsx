@@ -64,7 +64,7 @@ let NugetDeployPath= match nugetDeployPath with
                            | _         -> "-"+buildParam
 
 // version info
-let version = "0.0.2-pre" 
+let version = "0.0.6-pre" 
 
 // Targets
 Target "Clean" (fun _ -> 
@@ -115,6 +115,9 @@ Target "CreateNuget" (fun _ ->
             Summary = description
             WorkingDir = nugetWorkingDir
             Version = version 
+            Dependencies = [
+                             "Akka", "1.1.3"
+                           ]
          })             
             "EasyExecuteLib.nuspec"
 )

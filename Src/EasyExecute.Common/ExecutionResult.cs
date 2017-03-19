@@ -13,4 +13,11 @@ namespace EasyExecute.Common
         public List<string> Errors { set; get; }
         public bool Succeeded { set; get; }
     }
+    public class ExecutionResult: ExecutionResult<object>
+    {
+        public ExecutionResult()
+        {
+            Errors = new List<string>();
+        }
+    }
 }
