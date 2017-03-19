@@ -17,9 +17,9 @@ namespace EasyExecuteLib
         internal IActorRef ReceptionActorRef { get; set; }
 
         public EasyExecute(
-            TimeSpan? maxExecutionTimePerAskCall = null
-          , string serverActorSystemName = null
-          , ActorSystem actorSystem = null
+            TimeSpan? maxExecutionTimePerAskCall 
+          , string serverActorSystemName 
+          , ActorSystem actorSystem 
           , string actorSystemConfig = null
           , TimeSpan? purgeInterval = null
           , Action<Worker> onWorkerPurged = null)
@@ -33,9 +33,9 @@ namespace EasyExecuteLib
           ,  onWorkerPurged);
         }
         public EasyExecute(
-           TimeSpan? maxExecutionTimePerAskCall = null
-         , ActorSystem actorSystem = null
-         , string actorSystemConfig = null
+           TimeSpan? maxExecutionTimePerAskCall 
+         , ActorSystem actorSystem 
+         , string actorSystemConfig 
          , TimeSpan? purgeInterval = null
          , Action<Worker> onWorkerPurged = null)
         {
@@ -48,8 +48,8 @@ namespace EasyExecuteLib
           , onWorkerPurged);
         }
         public EasyExecute(
-          ActorSystem actorSystem = null
-        , string actorSystemConfig = null
+          ActorSystem actorSystem 
+        , string actorSystemConfig 
         , TimeSpan? purgeInterval = null
         , Action<Worker> onWorkerPurged = null)
         {
@@ -58,6 +58,19 @@ namespace EasyExecuteLib
           , null
           , actorSystem
           , actorSystemConfig
+          , purgeInterval
+          , onWorkerPurged);
+        }
+
+        public EasyExecute(
+        TimeSpan? purgeInterval = null
+      , Action<Worker> onWorkerPurged = null)
+        {
+            InitializeEasyExecute(
+            null
+          , null
+          , null
+          , null
           , purgeInterval
           , onWorkerPurged);
         }
