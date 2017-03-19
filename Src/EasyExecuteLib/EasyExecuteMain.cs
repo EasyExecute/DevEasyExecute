@@ -8,23 +8,43 @@ namespace EasyExecuteLib
 {
     public class EasyExecuteMain
     {
-        private EasyExecute _easyExecute;
+        private readonly EasyExecute _easyExecute;
 
         public EasyExecuteMain(EasyExecute easyExecute)
         {
             _easyExecute = easyExecute;
         }
 
-        public async Task<ExecutionResult<TResult>> Execute<TResult, TCommand>(string id, TCommand command, Func<TCommand,Task<TResult>> operation, Func<TResult,bool> hasFailed=null, bool returnExistingResultWhenDuplicateId=true, TimeSpan? maxExecutionTimePerAskCall = null,Func<ExecutionResult<TResult>, TResult> transformResult=null,bool storeCommands=false ) where TResult : class
+        public async Task<ExecutionResult<TResult>> Execute<TResult, TCommand>(
+            string id
+          , TCommand command
+          , Func<TCommand,Task<TResult>> operation
+          , Func<TResult,bool> hasFailed
+          , TimeSpan? maxExecutionTimePerAskCall = null
+          , Func<ExecutionResult<TResult>, TResult> transformResult=null
+          , ExecutionRequestOptions executionOptions = null) where TResult : class
         {
             if (operation == null) throw new ArgumentNullException(nameof(operation));
             if (id == null) throw new ArgumentNullException(nameof(id));
-
+            executionOptions = executionOptions ?? new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId=true,
+                StoreCommands = false
+            };
+            if (transformResult == null)
+            {
+                transformResult = (r) => r.Result;
+            }
+            if (hasFailed == null)
+            {
+                hasFailed = (r) => false;
+            }
+            
             IEasyExecuteResponseMessage result;
             var maxExecTime = maxExecutionTimePerAskCall ?? _easyExecute.MaxExecutionTimePerAskCall;
             try
             {
-                result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(new SetWorkMessage(id, command, new WorkFactory(async (o)=> await operation((TCommand)o), (r) => hasFailed?.Invoke((TResult)r) ?? false),storeCommands), maxExecTime).ConfigureAwait(false);
+                result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(new SetWorkMessage(id, command, new WorkFactory(async (o)=> await operation((TCommand)o), (r) => hasFailed?.Invoke((TResult)r) ?? false), executionOptions.StoreCommands), maxExecTime).ConfigureAwait(false);
 
             }
             catch (Exception e)
@@ -40,7 +60,7 @@ namespace EasyExecuteLib
             else if(result is SetCompleteWorkErrorMessage)
             {
                 finalResult.Errors.Add((result as SetCompleteWorkErrorMessage).Error);
-                if (returnExistingResultWhenDuplicateId)
+                if (executionOptions.ReturnExistingResultWhenDuplicateId)
                 {
                     finalResult.Result = (result as SetCompleteWorkErrorMessage)?.LastSuccessfullResult as TResult;
                 

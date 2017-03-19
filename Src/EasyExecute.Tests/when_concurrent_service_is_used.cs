@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyExecute.Common;
 using Xunit;
 using Xunit.Sdk;
 
@@ -21,8 +22,11 @@ namespace EasyExecute.Tests
                 }, (finalResult) =>
                 {
                     return false;
-                }, true,
-                TimeSpan.FromSeconds(5), (executionResult) =>
+                }, 
+                TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
+                {
+                    ReturnExistingResultWhenDuplicateId = true
+                }, (executionResult) =>
                 {
                     return executionResult.Result;
                 })).Result.Result;
@@ -41,8 +45,11 @@ namespace EasyExecute.Tests
             }, (finalResult) =>
             {
                 return false;
-            }, true,
-                TimeSpan.FromSeconds(5), (executionResult) =>
+            }, 
+                TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
+                {
+                    ReturnExistingResultWhenDuplicateId = true
+                }, (executionResult) =>
                 {
                     return executionResult.Result;
                 })).Result.Result;
@@ -61,7 +68,10 @@ namespace EasyExecute.Tests
             }, (finalResult) =>
             {
                 return false;
-            }, true, TimeSpan.FromSeconds(5))).Result.Result;
+            },  TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            })).Result.Result;
 
             Assert.NotNull(t);
         }
@@ -73,7 +83,10 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", () =>
             {
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait(); return Task.FromResult(new object());
-            }, (r) => false, true, TimeSpan.FromSeconds(3)).Result;
+            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
             Assert.True(result.Succeeded);
         }
 
@@ -84,7 +97,10 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", async () =>
             {
                 await  Task.Delay(TimeSpan.FromSeconds(1)); return new object();
-            }, (r) => false, true, TimeSpan.FromSeconds(3)).Result;
+            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
             Assert.True(result.Succeeded);
         }
 
@@ -95,7 +111,10 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(1)); return Task.FromResult(new object());
-            }, (r) => false, true, TimeSpan.FromSeconds(3)).Result;
+            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
             Assert.True(result.Succeeded);
         }
 
@@ -107,8 +126,12 @@ namespace EasyExecute.Tests
             var service = new EasyExecuteLib.EasyExecute();
             var result = service.ExecuteAsync<object>("1", async () =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(2)); return await Task.FromResult(now);
-            }, (r) => false, true, TimeSpan.FromSeconds(1)).Result;
+                await Task.Delay(TimeSpan.FromSeconds(3));
+                return await Task.FromResult(now);
+            }, (r) => false,  TimeSpan.FromSeconds(1), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
             Assert.False(result.Succeeded);
             Assert.NotEqual(now, result.Result);
             SimulateNormalClient();
@@ -117,7 +140,10 @@ namespace EasyExecute.Tests
             result = service.ExecuteAsync<object>("1", async () =>
             {
                 await  Task.Delay(TimeSpan.FromSeconds(1)); return await Task.FromResult(DateTime.UtcNow);
-            }, (r) => false, true, TimeSpan.FromSeconds(3)).Result;
+            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
 
             Assert.False(result.Succeeded);
             Assert.Equal(now,result.Result);
@@ -132,7 +158,10 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", () =>
             {
                 Task.Delay(TimeSpan.FromSeconds(6)).Wait(); return Task.FromResult(new object());
-            }, (r) => false, true, TimeSpan.FromSeconds(3)).Result;
+            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
             Assert.False(result.Succeeded);
         }
 
@@ -143,7 +172,10 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", async() =>
             {
                 await  Task.Delay(TimeSpan.FromSeconds(6)); return new object();
-            }, (r) => false, true, TimeSpan.FromSeconds(3)).Result;
+            }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
             Assert.False(result.Succeeded);
         }
 
@@ -154,7 +186,10 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(6)); return Task.FromResult(new object());
-            }, (r) => false, true, TimeSpan.FromSeconds(3)).Result;
+            }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            {
+                ReturnExistingResultWhenDuplicateId = true
+            }).Result;
             Assert.False(result.Succeeded);
         }
 
@@ -257,7 +292,8 @@ namespace EasyExecute.Tests
         {
             var service = new EasyExecuteLib.EasyExecute();
             var result =
-                          service.ExecuteAsync<object>("1", () => Task.FromResult(new object()), (r) => false).Result;
+                          service.ExecuteAsync<object>("1"
+                          , () => Task.FromResult(new object()), (r) => false).Result;
             Assert.True(result.Succeeded);
             var result2 =
                          service.ExecuteAsync<object>("2", () => Task.FromResult(new object())).Result;
