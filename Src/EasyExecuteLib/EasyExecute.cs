@@ -32,6 +32,35 @@ namespace EasyExecuteLib
           ,  purgeInterval 
           ,  onWorkerPurged);
         }
+        public EasyExecute(
+           TimeSpan? maxExecutionTimePerAskCall = null
+         , ActorSystem actorSystem = null
+         , string actorSystemConfig = null
+         , TimeSpan? purgeInterval = null
+         , Action<Worker> onWorkerPurged = null)
+        {
+            InitializeEasyExecute(
+            maxExecutionTimePerAskCall
+          , null
+          , actorSystem
+          , actorSystemConfig
+          , purgeInterval
+          , onWorkerPurged);
+        }
+        public EasyExecute(
+          ActorSystem actorSystem = null
+        , string actorSystemConfig = null
+        , TimeSpan? purgeInterval = null
+        , Action<Worker> onWorkerPurged = null)
+        {
+            InitializeEasyExecute(
+            null
+          , null
+          , actorSystem
+          , actorSystemConfig
+          , purgeInterval
+          , onWorkerPurged);
+        }
         private void  InitializeEasyExecute(
             TimeSpan? maxExecutionTimePerAskCall = null
           , string serverActorSystemName = null
