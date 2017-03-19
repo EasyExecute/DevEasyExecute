@@ -11,14 +11,36 @@ namespace EasyExecuteLib
 {
     public class EasyExecute
     {
-        private readonly EasyExecuteMain _easyExecuteMain;
-        private ActorSystemCreator ActorSystemCreator { get; }
-        internal TimeSpan MaxExecutionTimePerAskCall { get; }
-        internal IActorRef ReceptionActorRef { get; }
-       
-        public EasyExecute(TimeSpan? maxExecutionTimePerAskCall = null, string serverActorSystemName = null, ActorSystem actorSystem = null, string actorSystemConfig = null, TimeSpan? purgeInterval = null, Action<Worker> onWorkerPurged = null)
+        private  EasyExecuteMain _easyExecuteMain;
+        private ActorSystemCreator ActorSystemCreator { get; set; }
+        internal TimeSpan MaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
+        internal IActorRef ReceptionActorRef { get; set; }
+
+        public EasyExecute(
+            TimeSpan? maxExecutionTimePerAskCall = null
+          , string serverActorSystemName = null
+          , ActorSystem actorSystem = null
+          , string actorSystemConfig = null
+          , TimeSpan? purgeInterval = null
+          , Action<Worker> onWorkerPurged = null)
         {
-           
+            InitializeEasyExecute(
+            maxExecutionTimePerAskCall 
+          ,  serverActorSystemName 
+          ,  actorSystem 
+          ,  actorSystemConfig 
+          ,  purgeInterval 
+          ,  onWorkerPurged);
+        }
+        private void  InitializeEasyExecute(
+            TimeSpan? maxExecutionTimePerAskCall = null
+          , string serverActorSystemName = null
+          , ActorSystem actorSystem = null
+          , string actorSystemConfig = null
+          , TimeSpan? purgeInterval = null
+          , Action<Worker> onWorkerPurged = null)
+        {
+
             serverActorSystemName = (string.IsNullOrEmpty(serverActorSystemName) && actorSystem == null)
                 ? Guid.NewGuid().ToString()
                 : serverActorSystemName;
@@ -26,23 +48,22 @@ namespace EasyExecuteLib
             ActorSystemCreator = new ActorSystemCreator();
             ActorSystemCreator.CreateOrSetUpActorSystem(serverActorSystemName, actorSystem, actorSystemConfig);
             ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval, onWorkerPurged)));
-            MaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? TimeSpan.FromSeconds(5);
+            MaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? MaxExecutionTimePerAskCall;
         }
 
         internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
-
-
-        #region NO COMMAND
+        
+        #region REQUEST ONLY NO COMMAND
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
          string id
        , Func<Task<TResult>> operation
        , TimeSpan? maxExecutionTimePerAskCall = null
        , ExecutionRequestOptions executionOptions = null
-      , Func<ExecutionResult<TResult>, TResult> transformResult = null)
+       , Func<ExecutionResult<TResult>, TResult> transformResult = null)
          where TResult : class
         {
-            
-            
+
+
             return _easyExecuteMain.Execute(
                 id
               , new object()
@@ -62,8 +83,8 @@ namespace EasyExecuteLib
          , Func<ExecutionResult<TResult>, TResult> transformResult = null)
            where TResult : class
         {
-            
-            
+
+
             return _easyExecuteMain.Execute(
                 id
               , new object()
@@ -74,11 +95,11 @@ namespace EasyExecuteLib
               , executionOptions);
         }
 
-      
+
         #endregion
 
-        #region HAS COMMAND
-       
+        #region HAS REQUEST AND COMMAND
+
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
         string id
       , TCommand command
@@ -87,8 +108,8 @@ namespace EasyExecuteLib
       , ExecutionRequestOptions executionOptions = null
       , Func<ExecutionResult<TResult>, TResult> transformResult = null) where TResult : class
         {
-            
-            
+
+
             return _easyExecuteMain.Execute(
                 id
               , command
@@ -109,8 +130,8 @@ namespace EasyExecuteLib
        , ExecutionRequestOptions executionOptions = null
        , Func<ExecutionResult<TResult>, TResult> transformResult = null) where TResult : class
         {
-            
-            
+
+
             return _easyExecuteMain.Execute(
                 id
               , command
@@ -121,7 +142,7 @@ namespace EasyExecuteLib
               , executionOptions);
         }
 
-    
+
         #endregion
 
         #region COMMAND ONLY
@@ -132,14 +153,14 @@ namespace EasyExecuteLib
       , TimeSpan? maxExecutionTimePerAskCall = null
       , ExecutionRequestOptions executionOptions = null)
         {
-            
+
 
             var result = await _easyExecuteMain.Execute<object, TCommand>(
                 id
               , command
               , (o) => { operation(o); return Task.FromResult(new object()); }
-              ,null
-              
+              , null
+
               , maxExecutionTimePerAskCall
               , null
               , executionOptions);
@@ -158,7 +179,7 @@ namespace EasyExecuteLib
        , TimeSpan? maxExecutionTimePerAskCall = null
        , ExecutionRequestOptions executionOptions = null)
         {
-            
+
 
             var result = await _easyExecuteMain.Execute<object, TCommand>(
                 id
@@ -178,20 +199,21 @@ namespace EasyExecuteLib
 
         #endregion
 
-        #region FIRE AND FORGET
+        #region NO REQUEST NO COMMAND FIRE AND FORGET
+
         public async Task<ExecutionResult> ExecuteAsync(
          string id
        , Action operation
        , TimeSpan? maxExecutionTimePerAskCall
        , ExecutionRequestOptions executionOptions = null)
         {
-            
+
 
             var result = await _easyExecuteMain.Execute<object, object>(
                 id
               , new object()
               , (o) => { operation(); return Task.FromResult(new object()); }
-              ,null
+              , null
               , maxExecutionTimePerAskCall
               , null
               , executionOptions);
@@ -211,6 +233,49 @@ namespace EasyExecuteLib
         {
             var result = await _easyExecuteMain.Execute<object, object>(
                 id
+              , new object()
+              , (o) => { operation(); return Task.FromResult(new object()); }
+              , (r) => hasFailed()
+              , maxExecutionTimePerAskCall
+              , null
+              , executionOptions);
+            return new ExecutionResult()
+            {
+                Errors = result.Errors,
+                Succeeded = result.Succeeded
+            };
+        }
+        #endregion
+
+        #region NO ID NO REQUEST NO COMMAND FIRE AND FORGET
+        public async Task<ExecutionResult> ExecuteAsync(
+         Action operation
+       , TimeSpan? maxExecutionTimePerAskCall
+       , ExecutionRequestOptions executionOptions = null)
+        {
+            var result = await _easyExecuteMain.Execute<object, object>(
+                Guid.NewGuid().ToString()
+              , new object()
+              , (o) => { operation(); return Task.FromResult(new object()); }
+              , null
+              , maxExecutionTimePerAskCall
+              , null
+              , executionOptions);
+            return new ExecutionResult()
+            {
+                Errors = result.Errors,
+                Succeeded = result.Succeeded
+            };
+        }
+
+        public async Task<ExecutionResult> ExecuteAsync(
+        Action operation
+      , Func<bool> hasFailed
+      , TimeSpan? maxExecutionTimePerAskCall
+      , ExecutionRequestOptions executionOptions = null)
+        {
+            var result = await _easyExecuteMain.Execute<object, object>(
+                Guid.NewGuid().ToString()
               , new object()
               , (o) => { operation(); return Task.FromResult(new object()); }
               , (r) => hasFailed()
