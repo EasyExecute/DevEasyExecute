@@ -13,7 +13,7 @@ namespace EasyExecuteLib
     {
         private EasyExecuteMain _easyExecuteMain;
         private ActorSystemCreator ActorSystemCreator { get; set; }
-        internal TimeSpan MaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
+        internal TimeSpan DefaultMaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
         internal IActorRef ReceptionActorRef { get; set; }
         internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
 
@@ -94,7 +94,7 @@ namespace EasyExecuteLib
             ActorSystemCreator = new ActorSystemCreator();
             ActorSystemCreator.CreateOrSetUpActorSystem(serverActorSystemName, actorSystem, actorSystemConfig);
             ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval, onWorkerPurged)));
-            MaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? MaxExecutionTimePerAskCall;
+            DefaultMaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? DefaultMaxExecutionTimePerAskCall;
         }
 
         #endregion

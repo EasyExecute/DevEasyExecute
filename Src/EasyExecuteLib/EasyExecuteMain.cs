@@ -41,7 +41,7 @@ namespace EasyExecuteLib
             }
             
             IEasyExecuteResponseMessage result;
-            var maxExecTime = maxExecutionTimePerAskCall ?? _easyExecute.MaxExecutionTimePerAskCall;
+            var maxExecTime = maxExecutionTimePerAskCall ?? _easyExecute.DefaultMaxExecutionTimePerAskCall;
             try
             {
                 result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(new SetWorkMessage(id, command, new WorkFactory(async (o)=> await operation((TCommand)o), (r) => hasFailed?.Invoke((TResult)r) ?? false), executionOptions.StoreCommands), maxExecTime).ConfigureAwait(false);
