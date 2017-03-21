@@ -16,7 +16,7 @@ namespace EasyExecuteLib
         internal TimeSpan DefaultMaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
         internal IActorRef ReceptionActorRef { get; set; }
         internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
-        internal readonly int purgeAtNextHours = 1;
+        internal readonly int PurgeAtNextHours = 1;
         internal TimeSpan DefaultPurgeInterval =TimeSpan.FromSeconds(30);
         #region Constructors
 
