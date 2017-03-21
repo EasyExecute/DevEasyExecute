@@ -27,14 +27,14 @@ namespace EasyExecute.Tests
             //default options
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
-            var testHappyPathRequest = GetHappyPathRequest(workerId);
+            var testHappyPathRequest = GetHappyPathRequest<TestClass>(workerId);
 
             RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
               service.ExecuteAsync(
                   id
                 , command
                 , (com) => Task.FromResult(new TestClass(com))
-                , testHappyPathRequest. hasFailedHavingResult
+                , testHappyPathRequest. HasFailedHavingResult
                 , TimeSpan.FromSeconds(5)
                 , new ExecutionRequestOptions()
                 {
@@ -45,7 +45,7 @@ namespace EasyExecute.Tests
              service.ExecuteAsync(
                  id
                , () => Task.FromResult(new TestClass(command))
-               , testHappyPathRequest.hasFailedHavingResult
+               , testHappyPathRequest.HasFailedHavingResult
                , TimeSpan.FromSeconds(5)
                , new ExecutionRequestOptions()
                {
@@ -58,7 +58,7 @@ namespace EasyExecute.Tests
                       id
                       , command
                       , (com) => Task.FromResult(new TestClass(com))
-                      , testHappyPathRequest.hasFailed
+                      , testHappyPathRequest.HasFailed
                       , TimeSpan.FromSeconds(5)
                       , new ExecutionRequestOptions()
                       {
@@ -80,7 +80,7 @@ namespace EasyExecute.Tests
                   id
                 , command
                 , (com) => Task.FromResult(new TestClass(com))
-                , testHappyPathRequest.hasFailedHavingResult
+                , testHappyPathRequest.HasFailedHavingResult
                 , TimeSpan.FromSeconds(5)
                 ).Result, expectedResult);
 
@@ -88,7 +88,7 @@ namespace EasyExecute.Tests
              service.ExecuteAsync(
                  id
                , () => Task.FromResult(new TestClass(command))
-               , testHappyPathRequest.hasFailedHavingResult
+               , testHappyPathRequest.HasFailedHavingResult
                , TimeSpan.FromSeconds(5)
                ).Result, expectedResult);
 
@@ -98,14 +98,14 @@ namespace EasyExecute.Tests
                   id
                 , command
                 , (com) => Task.FromResult(new TestClass(com))
-                , testHappyPathRequest.hasFailedHavingResult
+                , testHappyPathRequest.HasFailedHavingResult
                 ).Result, expectedResult);
 
             RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
               service.ExecuteAsync(
                   id
                 , () => Task.FromResult(new TestClass(command))
-                , testHappyPathRequest.hasFailedHavingResult
+                , testHappyPathRequest.HasFailedHavingResult
                 ).Result, expectedResult);
 
             RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
@@ -147,18 +147,18 @@ namespace EasyExecute.Tests
              }, expectedResult);
         }
 
-        private static TestHappyPathRequest<TestClass> GetHappyPathRequest(string workerId)
+        private static TestHappyPathRequest<TCommand> GetHappyPathRequest<TCommand>(string workerId)
         {
-            var TestHappyPathRequest = new TestHappyPathRequest<TestClass>()
+            var TestHappyPathRequest = new TestHappyPathRequest<TCommand>()
             {
                 Id = workerId,
-                Command = null,
+                Command = default(TCommand),
                 Operation = null,
                 MaxExecutionTimePerAskCall = null,
                 ExecutionOptions = null,
                 TransformResult = null,
-                hasFailedHavingResult = (r) => false,
-                hasFailed = () => false
+                HasFailedHavingResult = (r) => false,
+                HasFailed = () => false
             };
             return TestHappyPathRequest;
         }
@@ -232,10 +232,8 @@ namespace EasyExecute.Tests
         {
             public string Id { set; get; }
             public TCommand Command { set; get; }
-
-            public Func<bool> hasFailed { set; get; }
-            public Func<TCommand, bool> hasFailedHavingResult { set; get; }
-
+            public Func<bool> HasFailed { set; get; }
+            public Func<TCommand, bool> HasFailedHavingResult { set; get; }
             public Func<TCommand, Task<TResult>> Operation { set; get; }
             public TimeSpan? MaxExecutionTimePerAskCall { set; get; }
             public ExecutionRequestOptions ExecutionOptions { set; get; }
