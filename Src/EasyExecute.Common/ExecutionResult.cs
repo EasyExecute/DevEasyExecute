@@ -12,6 +12,7 @@ namespace EasyExecute.Common
         public T Result { set; get; }
         public List<string> Errors { set; get; }
         public bool Succeeded { set; get; }
+        public string WorkerId { get; set; }
     }
     public class ExecutionResult: ExecutionResult<object>
     {

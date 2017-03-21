@@ -14,6 +14,7 @@ namespace EasyExecute.Messages
         public string WorkerId { get; private set; }
         public object LastSuccessfullResult { get; private set; }
         public bool HasExistingResult { get; private set; }
+        
     }
 
     public class SetWorkErrorMessage : IEasyExecuteResponseMessage

@@ -13,5 +13,6 @@ namespace EasyExecute.Messages
 
         public List<Worker> WorkHistory { get; private set; }
         public DateTime LastSystemAccessedTime { get; private set; }
+        public string WorkerId { get; set; }
     }
 }

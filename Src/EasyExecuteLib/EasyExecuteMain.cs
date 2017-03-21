@@ -51,8 +51,7 @@ namespace EasyExecuteLib
             {
                 result= new SetWorkErrorMessage($"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} ",id);
             }
-            var finalResult = new ExecutionResult<TResult>();
-           
+            var finalResult = new ExecutionResult<TResult> {WorkerId = result.WorkerId};
             if (result is SetWorkErrorMessage)
             {
                 finalResult.Errors.Add((result as SetWorkErrorMessage).Error);

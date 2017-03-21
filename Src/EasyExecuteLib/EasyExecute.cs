@@ -99,7 +99,7 @@ namespace EasyExecuteLib
 
         #endregion
 
-        #region REQUEST ONLY NO COMMAND
+        #region  HAS ID NO COMMAND HAS RESULT
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
          string id
        , Func<Task<TResult>> operation
@@ -144,7 +144,7 @@ namespace EasyExecuteLib
 
         #endregion
 
-        #region HAS REQUEST AND COMMAND
+        #region  HAS ID  HAS COMMAND HAS RESULT
 
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
         string id
@@ -188,10 +188,9 @@ namespace EasyExecuteLib
               , executionOptions);
         }
 
-
         #endregion
 
-        #region COMMAND ONLY
+        #region  HAS ID   HAS COMMAND  NO RESULT
         public async Task<ExecutionResult> ExecuteAsync<TCommand>(
         string id
       , TCommand command
@@ -213,7 +212,8 @@ namespace EasyExecuteLib
             return new ExecutionResult()
             {
                 Errors = result.Errors,
-                Succeeded = result.Succeeded
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
             };
         }
 
@@ -238,14 +238,13 @@ namespace EasyExecuteLib
             return new ExecutionResult()
             {
                 Errors = result.Errors,
-                Succeeded = result.Succeeded
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
             };
         }
-
-
         #endregion
 
-        #region NO REQUEST NO COMMAND FIRE AND FORGET
+        #region  HAS ID  NO COMMAND  NO RESULT
 
         public async Task<ExecutionResult> ExecuteAsync(
          string id
@@ -253,8 +252,6 @@ namespace EasyExecuteLib
        , TimeSpan? maxExecutionTimePerAskCall
        , ExecutionRequestOptions executionOptions = null)
         {
-
-
             var result = await _easyExecuteMain.Execute<object, object>(
                 id
               , new object()
@@ -266,7 +263,8 @@ namespace EasyExecuteLib
             return new ExecutionResult()
             {
                 Errors = result.Errors,
-                Succeeded = result.Succeeded
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
             };
         }
 
@@ -288,12 +286,13 @@ namespace EasyExecuteLib
             return new ExecutionResult()
             {
                 Errors = result.Errors,
-                Succeeded = result.Succeeded
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
             };
         }
         #endregion
 
-        #region NO ID NO REQUEST NO COMMAND FIRE AND FORGET
+        #region NO ID NO COMMAND  NO RESULT
         public async Task<ExecutionResult> ExecuteAsync(
          Action operation
        , TimeSpan? maxExecutionTimePerAskCall
@@ -310,7 +309,29 @@ namespace EasyExecuteLib
             return new ExecutionResult()
             {
                 Errors = result.Errors,
-                Succeeded = result.Succeeded
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
+            };
+        }
+
+
+        public async Task<ExecutionResult> ExecuteAsync(
+        Action operation
+      , ExecutionRequestOptions executionOptions = null)
+        {
+            var result = await _easyExecuteMain.Execute<object, object>(
+                Guid.NewGuid().ToString()
+              , new object()
+              , (o) => { operation(); return Task.FromResult(new object()); }
+              , null
+              , null
+              , null
+              , executionOptions);
+            return new ExecutionResult()
+            {
+                Errors = result.Errors,
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
             };
         }
 
@@ -331,7 +352,29 @@ namespace EasyExecuteLib
             return new ExecutionResult()
             {
                 Errors = result.Errors,
-                Succeeded = result.Succeeded
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
+            };
+        }
+
+        public async Task<ExecutionResult> ExecuteAsync(
+       Action operation
+     , Func<bool> hasFailed
+     , ExecutionRequestOptions executionOptions = null)
+        {
+            var result = await _easyExecuteMain.Execute<object, object>(
+                Guid.NewGuid().ToString()
+              , new object()
+              , (o) => { operation(); return Task.FromResult(new object()); }
+              , (r) => hasFailed()
+              , null
+              , null
+              , executionOptions);
+            return new ExecutionResult()
+            {
+                Errors = result.Errors,
+                Succeeded = result.Succeeded,
+                WorkerId = result.WorkerId
             };
         }
         #endregion
