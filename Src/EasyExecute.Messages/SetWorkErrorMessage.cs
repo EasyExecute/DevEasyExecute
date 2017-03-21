@@ -19,13 +19,15 @@ namespace EasyExecute.Messages
 
     public class SetWorkErrorMessage : IEasyExecuteResponseMessage
     {
-        public SetWorkErrorMessage(string error, string workerId)
+        public SetWorkErrorMessage(string error, string workerId, object result)
         {
             Error = error;
             WorkerId = workerId;
+            Result = result;
         }
 
         public string Error { get; private set; }
         public string WorkerId { get; private set; }
+        public object Result { get; private set; }
     }
 }

@@ -39,7 +39,7 @@ namespace EasyExecute.Reception
                 }
                 else if (string.IsNullOrEmpty(message.Id))
                 {
-                    Sender.Tell(new SetWorkErrorMessage($"Null or empty ID: {message.Id} at {LastAccessedTime}", message.Id));
+                    Sender.Tell(new SetWorkErrorMessage($"Null or empty ID: {message.Id} at {LastAccessedTime}", message.Id,null));
                 }
                 else
                 {

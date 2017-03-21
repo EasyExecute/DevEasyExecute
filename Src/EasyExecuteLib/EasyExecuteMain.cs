@@ -32,7 +32,7 @@ namespace EasyExecuteLib
                 StoreCommands = false
             };
             executionOptions.PurgeAt = executionOptions.PurgeAt ??
-                                       DateTime.UtcNow.AddHours(_easyExecute.purgeAtNextHours);
+                                       DateTime.UtcNow.AddHours(_easyExecute.PurgeAtNextHours);
            
             if (transformResult == null)
             {
@@ -51,12 +51,14 @@ namespace EasyExecuteLib
             }
             catch (Exception e)
             {
-                result= new SetWorkErrorMessage($"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} - Exception : {e.Message} - {e.InnerException?.Message??""}",id);
+                result= new SetWorkErrorMessage($"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} - Exception : {e.Message} - {e.InnerException?.Message??""}",id,null);
             }
             var finalResult = new ExecutionResult<TResult> {WorkerId = result.WorkerId};
             if (result is SetWorkErrorMessage)
             {
-                finalResult.Errors.Add((result as SetWorkErrorMessage).Error);
+                var tmpResult = (result as SetWorkErrorMessage);
+                finalResult.Errors.Add(tmpResult.Error);
+                finalResult.Result = tmpResult.Result as TResult;
             }
             else if(result is SetCompleteWorkErrorMessage)
             {
