@@ -27,7 +27,8 @@ namespace EasyExecute.Tests
             //default options
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
-            var testHappyPathRequest = GetHappyPathRequest<TestClass>(workerId);
+            //???
+            var testHappyPathRequest = GetHappyPathRequest<TestClass,string>(workerId);
 
             RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
               service.ExecuteAsync(
@@ -147,9 +148,9 @@ namespace EasyExecute.Tests
              }, expectedResult);
         }
 
-        private static TestHappyPathRequest<TCommand> GetHappyPathRequest<TCommand>(string workerId)
+        private static TestHappyPathRequest<TCommand,TResult> GetHappyPathRequest<TCommand, TResult>(string workerId) where TResult : class
         {
-            var TestHappyPathRequest = new TestHappyPathRequest<TCommand>()
+            var TestHappyPathRequest = new TestHappyPathRequest<TCommand, TResult>()
             {
                 Id = workerId,
                 Command = default(TCommand),
