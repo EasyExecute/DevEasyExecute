@@ -16,7 +16,8 @@ namespace EasyExecuteLib
         internal TimeSpan DefaultMaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
         internal IActorRef ReceptionActorRef { get; set; }
         internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
-
+        internal readonly int purgeAtNextHours = 1;
+        internal TimeSpan DefaultPurgeInterval =TimeSpan.FromSeconds(30);
         #region Constructors
 
 
@@ -36,6 +37,7 @@ namespace EasyExecuteLib
           , purgeInterval
           , onWorkerPurged);
         }
+
         public EasyExecute(
            TimeSpan? maxExecutionTimePerAskCall
          , ActorSystem actorSystem
@@ -51,6 +53,7 @@ namespace EasyExecuteLib
           , purgeInterval
           , onWorkerPurged);
         }
+
         public EasyExecute(
           ActorSystem actorSystem
         , string actorSystemConfig
@@ -78,6 +81,7 @@ namespace EasyExecuteLib
           , purgeInterval
           , onWorkerPurged);
         }
+
         private void InitializeEasyExecute(
             TimeSpan? maxExecutionTimePerAskCall = null
           , string serverActorSystemName = null
@@ -93,9 +97,11 @@ namespace EasyExecuteLib
             _easyExecuteMain = new EasyExecuteMain(this);
             ActorSystemCreator = new ActorSystemCreator();
             ActorSystemCreator.CreateOrSetUpActorSystem(serverActorSystemName, actorSystem, actorSystemConfig);
-            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval, onWorkerPurged)));
+            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval?? DefaultPurgeInterval, onWorkerPurged)));
             DefaultMaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? DefaultMaxExecutionTimePerAskCall;
         }
+
+   
 
         #endregion
 

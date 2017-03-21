@@ -4,23 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyExecute.Common;
 using EasyExecute.Messages;
-using FsCheck.Experimental;
 using Xunit;
 
 namespace EasyExecute.Tests
 {
     public class when_any_api_method_is_used
     {
-        public class TestClass
-        {
-            public TestClass(string data)
-            {
-                Data = data;
-            }
-
-            public string Data { set; get; }
-        }
-
         [Fact]
         public void ensure_all_api_works()
         {
@@ -28,129 +17,144 @@ namespace EasyExecute.Tests
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
             //???
-            var testHappyPathRequest = GetHappyPathRequest<TestClass,string>(workerId);
+            var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
-            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
-              service.ExecuteAsync(
-                  id
-                , command
-                , (com) => Task.FromResult(new TestClass(com))
-                , testHappyPathRequest. HasFailedHavingResult
-                , TimeSpan.FromSeconds(5)
-                , new ExecutionRequestOptions()
-                {
-                    ReturnExistingResultWhenDuplicateId = true
-                }).Result, expectedResult);
+            #region  HAS ID NO COMMAND HAS RESULT  
 
             RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
-             service.ExecuteAsync(
-                 id
-               , () => Task.FromResult(new TestClass(command))
-               , testHappyPathRequest.HasFailedHavingResult
-               , TimeSpan.FromSeconds(5)
-               , new ExecutionRequestOptions()
-               {
-                   ReturnExistingResultWhenDuplicateId = true
-               }).Result, expectedResult);
+                service.ExecuteAsync(
+                    id
+                    , () => Task.FromResult(new TestClass(command))
+                    , testHappyPathRequest.HasFailedHavingResult
+                    , TimeSpan.FromSeconds(5)
+                    , new ExecutionRequestOptions
+                    {
+                        ReturnExistingResultWhenDuplicateId = true
+                    }).Result, expectedResult);
+            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , () => Task.FromResult(new TestClass(command))
+                    , testHappyPathRequest.HasFailedHavingResult
+                    , TimeSpan.FromSeconds(5)
+                    ).Result, expectedResult);
+            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , () => Task.FromResult(new TestClass(command))
+                    , testHappyPathRequest.HasFailedHavingResult
+                    ).Result, expectedResult);
+            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , () => Task.FromResult(new TestClass(command))
+                    ).Result, expectedResult);
+
+            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , () => Task.FromResult(new TestClass(command))
+                    ).Result, expectedResult);
+
+            #endregion
+
+            #region  HAS ID  HAS COMMAND HAS RESULT
+
+            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , command
+                    , com => Task.FromResult(new TestClass(com))
+                    , testHappyPathRequest.HasFailedHavingResult
+                    , TimeSpan.FromSeconds(5)
+                    , new ExecutionRequestOptions
+                    {
+                        ReturnExistingResultWhenDuplicateId = true
+                    }).Result, expectedResult);
+            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , command
+                    , com => Task.FromResult(new TestClass(com))
+                    , testHappyPathRequest.HasFailedHavingResult
+                    , TimeSpan.FromSeconds(5)
+                    ).Result, expectedResult);
+            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , command
+                    , com => Task.FromResult(new TestClass(com))
+                    , testHappyPathRequest.HasFailedHavingResult
+                    ).Result, expectedResult);
+
+            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , command
+                    , com => Task.FromResult(new TestClass(com))
+                    ).Result, expectedResult);
+
+
+            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
+                service.ExecuteAsync(
+                    id
+                    , command
+                    , com => Task.FromResult(new TestClass(com))
+                    ).Result, expectedResult);
+
+            #endregion
+
+            #region  HAS ID   HAS COMMAND  NO RESULT
+
+            #endregion
+
+            #region  HAS ID  NO COMMAND  NO RESULT
 
             RunTest(workerId, "HAS ID - NO COMMAND - NO RESULT", (service, id, command) =>
             {
                 var result = service.ExecuteAsync(
-                      id
-                      , command
-                      , (com) => Task.FromResult(new TestClass(com))
-                      , testHappyPathRequest.HasFailed
-                      , TimeSpan.FromSeconds(5)
-                      , new ExecutionRequestOptions()
-                      {
-                          ReturnExistingResultWhenDuplicateId = true
-                      }).Result;
+                    id
+                    , command
+                    , com => Task.FromResult(new TestClass(com))
+                    , testHappyPathRequest.HasFailed
+                    , TimeSpan.FromSeconds(5)
+                    , new ExecutionRequestOptions
+                    {
+                        ReturnExistingResultWhenDuplicateId = true
+                    }).Result;
 
-                return new ExecutionResult<TestClass>()
+                return new ExecutionResult<TestClass>
                 {
                     Succeeded = true,
                     Result = new TestClass(command),
                     Errors = new List<string>(),
                     WorkerId = id
                 };
-
             }, expectedResult);
 
-            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
-              service.ExecuteAsync(
-                  id
-                , command
-                , (com) => Task.FromResult(new TestClass(com))
-                , testHappyPathRequest.HasFailedHavingResult
-                , TimeSpan.FromSeconds(5)
-                ).Result, expectedResult);
+            #endregion
 
-            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
-             service.ExecuteAsync(
-                 id
-               , () => Task.FromResult(new TestClass(command))
-               , testHappyPathRequest.HasFailedHavingResult
-               , TimeSpan.FromSeconds(5)
-               ).Result, expectedResult);
-
-
-            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
-              service.ExecuteAsync(
-                  id
-                , command
-                , (com) => Task.FromResult(new TestClass(com))
-                , testHappyPathRequest.HasFailedHavingResult
-                ).Result, expectedResult);
-
-            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
-              service.ExecuteAsync(
-                  id
-                , () => Task.FromResult(new TestClass(command))
-                , testHappyPathRequest.HasFailedHavingResult
-                ).Result, expectedResult);
-
-            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
-              service.ExecuteAsync(
-                  id
-                , command
-                , (com) => Task.FromResult(new TestClass(com))
-                ).Result, expectedResult);
-
-            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
-             service.ExecuteAsync(
-                 id
-               , () => Task.FromResult(new TestClass(command))
-               ).Result, expectedResult);
-
-            RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
-             service.ExecuteAsync(
-                 id
-               , command
-               , (com) => Task.FromResult(new TestClass(com))
-               ).Result, expectedResult);
-
-            RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
-              service.ExecuteAsync(
-                  id
-                , () => Task.FromResult(new TestClass(command))
-                ).Result, expectedResult);
+            #region NO ID NO COMMAND  NO RESULT
 
             RunTest(workerId, "NO ID - NO COMMAND - NO RESULT", (service, id, command) =>
-             {
-                 var result = service.ExecuteAsync(() => { }).Result;
-                 return new ExecutionResult<TestClass>()
-                 {
-                     Succeeded = true,
-                     Result = new TestClass(command),
-                     Errors = new List<string>(),
-                     WorkerId = id
-                 };
-             }, expectedResult);
+            {
+                var result = service.ExecuteAsync(() => { }).Result;
+                return new ExecutionResult<TestClass>
+                {
+                    Succeeded = true,
+                    Result = new TestClass(command),
+                    Errors = new List<string>(),
+                    WorkerId = id
+                };
+            }, expectedResult);
+
+            #endregion
         }
 
-        private static TestHappyPathRequest<TCommand,TResult> GetHappyPathRequest<TCommand, TResult>(string workerId) where TResult : class
+        private static TestHappyPathRequest<TCommand, TResult> GetHappyPathRequest<TCommand, TResult>(string workerId)
+            where TResult : class
         {
-            var TestHappyPathRequest = new TestHappyPathRequest<TCommand, TResult>()
+            var TestHappyPathRequest = new TestHappyPathRequest<TCommand, TResult>
             {
                 Id = workerId,
                 Command = default(TCommand),
@@ -158,7 +162,7 @@ namespace EasyExecute.Tests
                 MaxExecutionTimePerAskCall = null,
                 ExecutionOptions = null,
                 TransformResult = null,
-                HasFailedHavingResult = (r) => false,
+                HasFailedHavingResult = r => false,
                 HasFailed = () => false
             };
             return TestHappyPathRequest;
@@ -166,24 +170,24 @@ namespace EasyExecute.Tests
 
         private static ExepectedTestResult GetHappyPathExpectedResult(string workerId)
         {
-            return new ExepectedTestResult()
+            return new ExepectedTestResult
             {
-                ExecutionResult = new ExecutionResult<TestClass>()
+                ExecutionResult = new ExecutionResult<TestClass>
                 {
                     Succeeded = true,
                     Errors = new List<string>(),
                     Result = new TestClass(workerId),
                     WorkerId = workerId
                 },
-                ExecutionResultHistory = new ExecutionResult<GetWorkHistoryCompletedMessage>()
+                ExecutionResultHistory = new ExecutionResult<GetWorkHistoryCompletedMessage>
                 {
                     Errors = new List<string>(),
-                    Result = new GetWorkHistoryCompletedMessage(new List<Worker>()
+                    Result = new GetWorkHistoryCompletedMessage(new List<Worker>
                     {
-                        new Worker(workerId, new WorkerStatus()
+                        new Worker(workerId, new WorkerStatus
                         {
                             IsCompleted = true
-                        } , null,null,false)
+                        }, null, null, false, DateTime.UtcNow)
                     }, DateTime.UtcNow),
                     WorkerId = null
                 }
@@ -192,12 +196,11 @@ namespace EasyExecute.Tests
 
         private static void RunTest(string i,
             string description
-          , Func<EasyExecuteLib.EasyExecute, string, string, ExecutionResult<TestClass>> operation
-          , ExepectedTestResult expectedResult)
+            , Func<EasyExecuteLib.EasyExecute, string, string, ExecutionResult<TestClass>> operation
+            , ExepectedTestResult expectedResult)
         {
             // foreach (var i in Enumerable.Range(1, 2))
             {
-
                 try
                 {
                     var service = new EasyExecuteLib.EasyExecute();
@@ -210,7 +213,8 @@ namespace EasyExecute.Tests
                     Assert.Equal(expectedResult.ExecutionResult.Errors.Count, result.Errors.Count);
                     Assert.True(history.Succeeded);
                     Assert.Equal(expectedResult.ExecutionResultHistory.Errors.Count, history.Errors.Count);
-                    Assert.Equal(expectedResult.ExecutionResultHistory.Result.WorkHistory.Count, history.Result.WorkHistory.Count);
+                    Assert.Equal(expectedResult.ExecutionResultHistory.Result.WorkHistory.Count,
+                        history.Result.WorkHistory.Count);
                     Assert.True(history.Result.WorkHistory.First().WorkerStatus.IsCompleted);
                 }
                 catch (Exception e)
@@ -218,33 +222,6 @@ namespace EasyExecute.Tests
                     throw new Exception("Error : " + description + " - " + e.Message, e);
                 }
             }
-
-        }
-
-        public class TestHappyPathRequest : TestHappyPathRequest<object, object>
-        {
-
-        }
-        public class TestHappyPathRequest<TCommand> : TestHappyPathRequest<TCommand, object>
-        {
-
-        }
-        public class TestHappyPathRequest<TCommand, TResult> where TResult : class
-        {
-            public string Id { set; get; }
-            public TCommand Command { set; get; }
-            public Func<bool> HasFailed { set; get; }
-            public Func<TCommand, bool> HasFailedHavingResult { set; get; }
-            public Func<TCommand, Task<TResult>> Operation { set; get; }
-            public TimeSpan? MaxExecutionTimePerAskCall { set; get; }
-            public ExecutionRequestOptions ExecutionOptions { set; get; }
-            public Func<ExecutionResult<TResult>, TResult> TransformResult { set; get; }
-        }
-
-        public class ExepectedTestResult
-        {
-            public ExecutionResult<TestClass> ExecutionResult { set; get; }
-            public ExecutionResult<GetWorkHistoryCompletedMessage> ExecutionResultHistory { set; get; }
         }
     }
 }

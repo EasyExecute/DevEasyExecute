@@ -14,10 +14,10 @@ namespace EasyExecute.Reception
         private TimeSpan PurgeInterval { set; get; }
         private Action<Worker> OnWorkersPurged { set; get; }
 
-        public ReceptionActor(TimeSpan? purgeInterval, Action<Worker> onWorkersPurged)
+        public ReceptionActor(TimeSpan purgeInterval, Action<Worker> onWorkersPurged)
         {
             OnWorkersPurged = onWorkersPurged;
-            PurgeInterval = purgeInterval ?? TimeSpan.FromHours(1);
+            PurgeInterval = purgeInterval;
             ServiceWorkerStore = new Dictionary<string, Worker>();
             var serviceWorkerActorRef =
                 Context.ActorOf(Props.Create(() => new ServiceWorkerActor(Self)).WithRouter(new RoundRobinPool(10)));
@@ -46,7 +46,7 @@ namespace EasyExecute.Reception
                     ServiceWorkerStore.Add(message.Id, new Worker(message.Id, new WorkerStatus
                     {
                         CreatedDateTime = DateTime.UtcNow
-                    }, null,message.Command,message.StoreCommands));
+                    }, null,message.Command,message.StoreCommands,message.PurgeAt));
                     serviceWorkerActorRef.Forward(message);
                 }
             });
@@ -56,7 +56,7 @@ namespace EasyExecute.Reception
             });
             Receive<PurgeMessage>(_ =>
             {
-                var workers = ServiceWorkerStore.Select(x => x.Key).ToList();
+                var workers = ServiceWorkerStore.Where(x=>x.Value.PurgeAt==null || x.Value.PurgeAt<=DateTime.UtcNow).Select(x => x.Key).ToList();
                 workers.ForEach(RemoveWorkerFromDictionary);
             });
             Receive<SetWorkSucceededMessage>(message =>
@@ -69,7 +69,7 @@ namespace EasyExecute.Reception
                     CreatedDateTime = work.WorkerStatus.CreatedDateTime,
                     CompletedDateTime = DateTime.UtcNow,
                     IsCompleted = true
-                }, message.Result, work.StoreCommands? work.Command:null,work.StoreCommands));
+                }, message.Result, work.StoreCommands? work.Command:null,work.StoreCommands,work.PurgeAt));
             });
             Context.System.Scheduler.ScheduleTellRepeatedly(PurgeInterval, PurgeInterval, Self, new PurgeMessage(), Self);
         }

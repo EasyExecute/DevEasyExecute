@@ -46,6 +46,9 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ArbitraryNameOperationIdObject.cs" />
+    <Compile Include="ExepectedTestResult.cs" />
+    <Compile Include="TestClass.cs" />
+    <Compile Include="TestHappyPathRequest.cs" />
     <Compile Include="TestSystem\DelayedPurchaseServiceFactory.cs" />
     <Compile Include="TestSystem\IPurchaseServiceFactory.cs" />
     <Compile Include="TestSystem\NameOperationIdObject.cs" />

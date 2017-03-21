@@ -31,6 +31,9 @@ namespace EasyExecuteLib
                 ReturnExistingResultWhenDuplicateId=true,
                 StoreCommands = false
             };
+            executionOptions.PurgeAt = executionOptions.PurgeAt ??
+                                       DateTime.UtcNow.AddHours(_easyExecute.purgeAtNextHours);
+           
             if (transformResult == null)
             {
                 transformResult = (r) => r.Result;
@@ -44,12 +47,11 @@ namespace EasyExecuteLib
             var maxExecTime = maxExecutionTimePerAskCall ?? _easyExecute.DefaultMaxExecutionTimePerAskCall;
             try
             {
-                result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(new SetWorkMessage(id, command, new WorkFactory(async (o)=> await operation((TCommand)o), (r) => hasFailed?.Invoke((TResult)r) ?? false), executionOptions.StoreCommands), maxExecTime).ConfigureAwait(false);
-
+                result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(new SetWorkMessage(id, command, new WorkFactory(async (o)=> await operation((TCommand)o), (r) => hasFailed?.Invoke((TResult)r) ?? false), executionOptions.StoreCommands,executionOptions.PurgeAt), maxExecTime).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                result= new SetWorkErrorMessage($"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} ",id);
+                result= new SetWorkErrorMessage($"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} - Exception : {e.Message} - {e.InnerException?.Message??""}",id);
             }
             var finalResult = new ExecutionResult<TResult> {WorkerId = result.WorkerId};
             if (result is SetWorkErrorMessage)

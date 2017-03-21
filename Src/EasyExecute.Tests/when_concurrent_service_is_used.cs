@@ -291,7 +291,7 @@ namespace EasyExecute.Tests
         {
             const int numberOfRequests = 2000;
             var maxExecutionTimePerAskCall = TimeSpan.FromSeconds(3);
-            const int maxTotalExecutionTimeMs = 4000;
+            const int maxTotalExecutionTimeMs = 4500;
             var service = new EasyExecuteLib.EasyExecute(maxExecutionTimePerAskCall);
             var watch = Stopwatch.StartNew();
             Parallel.ForEach(Enumerable.Range(0, numberOfRequests),
@@ -334,7 +334,7 @@ namespace EasyExecute.Tests
         {
             const int numberOfBaskets = 100;
             const int numberOfPurchaseFromOneBasketCount = 10;
-            var maxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
+            var maxExecutionTimePerAskCall = TimeSpan.FromSeconds(6);
             var service = new EasyExecuteLib.EasyExecute(maxExecutionTimePerAskCall);
 
             TestHelper.TestOperationExecution(numberOfBaskets, numberOfPurchaseFromOneBasketCount,

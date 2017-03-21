@@ -12,8 +12,12 @@ namespace EasyExecute.Tests
 {
     public class TestHelper
     {
-        public static long TestOperationExecution(int numberOfBaskets, int numberOfPurchaseFromOneBasketCount,Action<List<string>,IPurchaseServiceFactory> executor,
-            TimeSpan maxExecutionTimePerAskCall)
+        public static long TestOperationExecution(
+            int numberOfBaskets
+          , int numberOfPurchaseFromOneBasketCount
+          , Action<List<string>
+          , IPurchaseServiceFactory> executor
+          , TimeSpan maxExecutionTimePerAskCall)
         {
             //Arrange
             var baskets = new ConcurrentDictionary<string, bool>();
@@ -45,8 +49,7 @@ namespace EasyExecute.Tests
             var elapsedMs = watch.ElapsedMilliseconds;
 
             Assert.All(baskets, b => Assert.Equal(1, orders.Count(o => o.Value == b.Key)));
-
-
+            
             return elapsedMs;
         }
 
