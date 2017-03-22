@@ -1,9 +1,9 @@
+using EasyExecute.Common;
+using EasyExecute.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EasyExecute.Common;
-using EasyExecute.Messages;
 using Xunit;
 
 namespace EasyExecute.Tests
@@ -19,7 +19,7 @@ namespace EasyExecute.Tests
             //???
             var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
-            #region  HAS ID NO COMMAND HAS RESULT  
+            #region HAS ID NO COMMAND HAS RESULT
 
             RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
                 service.ExecuteAsync(
@@ -56,9 +56,9 @@ namespace EasyExecute.Tests
                     , () => Task.FromResult(new TestClass(command))
                     ).Result, expectedResult);
 
-            #endregion
+            #endregion HAS ID NO COMMAND HAS RESULT
 
-            #region  HAS ID  HAS COMMAND HAS RESULT
+            #region HAS ID  HAS COMMAND HAS RESULT
 
             RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
                 service.ExecuteAsync(
@@ -94,7 +94,6 @@ namespace EasyExecute.Tests
                     , com => Task.FromResult(new TestClass(com))
                     ).Result, expectedResult);
 
-
             RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
                 service.ExecuteAsync(
                     id
@@ -102,13 +101,11 @@ namespace EasyExecute.Tests
                     , com => Task.FromResult(new TestClass(com))
                     ).Result, expectedResult);
 
-            #endregion
+            #endregion HAS ID  HAS COMMAND HAS RESULT
 
-            #region  HAS ID   HAS COMMAND  NO RESULT
 
-            #endregion
 
-            #region  HAS ID  NO COMMAND  NO RESULT
+            #region HAS ID  NO COMMAND  NO RESULT
 
             RunTest(workerId, "HAS ID - NO COMMAND - NO RESULT", (service, id, command) =>
             {
@@ -132,7 +129,7 @@ namespace EasyExecute.Tests
                 };
             }, expectedResult);
 
-            #endregion
+            #endregion HAS ID  NO COMMAND  NO RESULT
 
             #region NO ID NO COMMAND  NO RESULT
 
@@ -148,7 +145,7 @@ namespace EasyExecute.Tests
                 };
             }, expectedResult);
 
-            #endregion
+            #endregion NO ID NO COMMAND  NO RESULT
         }
 
         private static TestHappyPathRequest<TCommand, TResult> GetHappyPathRequest<TCommand, TResult>(string workerId)

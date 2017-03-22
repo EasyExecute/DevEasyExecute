@@ -1,11 +1,10 @@
+using Akka.Util.Internal;
+using EasyExecute.Tests.TestSystem;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Akka.Util.Internal;
-using EasyExecute.Messages;
-using EasyExecute.Tests.TestSystem;
 using Xunit;
 
 namespace EasyExecute.Tests
@@ -39,7 +38,6 @@ namespace EasyExecute.Tests
             baskets.ForEach(b => { baskets[b.Key] = true; });
             orders = new ConcurrentDictionary<string, string>();
 
-           
             purchaseService = new DelayedPurchaseServiceFactory(baskets, orders);
             var watch = Stopwatch.StartNew();
 
@@ -49,10 +47,9 @@ namespace EasyExecute.Tests
             var elapsedMs = watch.ElapsedMilliseconds;
 
             Assert.All(baskets, b => Assert.Equal(1, orders.Count(o => o.Value == b.Key)));
-            
+
             return elapsedMs;
         }
-
 
         private static List<string> ObtainBasketIds(ConcurrentDictionary<string, bool> baskets,
             int numberOfPurchaseFromOneBasketCount)

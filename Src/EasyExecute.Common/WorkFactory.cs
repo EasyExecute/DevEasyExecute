@@ -6,11 +6,12 @@ namespace EasyExecute.Common
 {
     public class WorkFactory : IWorkFactory
     {
-        public WorkFactory(Func<object,Task<object>> operation, Func<object, bool> hasFailed)
+        public WorkFactory(Func<object, Task<object>> operation, Func<object, bool> hasFailed, int maxRetryCount)
         {
             OperationAsync = operation;
             RunAsyncMethod = true;
             HasFailed = hasFailed;
+            MaxRetryCount = maxRetryCount;
         }
 
         private Func<object> Operation { get; }
@@ -30,7 +31,6 @@ namespace EasyExecute.Common
             return OperationAsync(command);
         }
 
-       
         public bool IsAFailedResult(object result)
         {
             return (HasFailed != null && HasFailed(result));
@@ -38,5 +38,6 @@ namespace EasyExecute.Common
 
         public bool RunAsyncMethod { get; set; }
         private Func<object, bool> HasFailed { get; }
+        public int MaxRetryCount { get; set; }
     }
 }

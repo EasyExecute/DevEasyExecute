@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Akka.Actor;
 using EasyExecute.ActorSystemFactory;
 using EasyExecute.Common;
 using EasyExecute.Messages;
 using EasyExecute.Reception;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace EasyExecuteLib
 {
@@ -16,10 +16,11 @@ namespace EasyExecuteLib
         internal TimeSpan DefaultMaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
         internal IActorRef ReceptionActorRef { get; set; }
         internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
-        internal readonly int PurgeAtNextHours = 1;
-        internal TimeSpan DefaultPurgeInterval =TimeSpan.FromSeconds(30);
-        #region Constructors
 
+        //internal readonly int CacheExpirationNextHours = 1;
+        internal TimeSpan DefaultPurgeInterval = TimeSpan.FromSeconds(30);
+
+        #region Constructors
 
         public EasyExecute(
             TimeSpan? maxExecutionTimePerAskCall
@@ -90,22 +91,20 @@ namespace EasyExecuteLib
           , TimeSpan? purgeInterval = null
           , Action<Worker> onWorkerPurged = null)
         {
-
             serverActorSystemName = (string.IsNullOrEmpty(serverActorSystemName) && actorSystem == null)
                 ? Guid.NewGuid().ToString()
                 : serverActorSystemName;
             _easyExecuteMain = new EasyExecuteMain(this);
             ActorSystemCreator = new ActorSystemCreator();
             ActorSystemCreator.CreateOrSetUpActorSystem(serverActorSystemName, actorSystem, actorSystemConfig);
-            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval?? DefaultPurgeInterval, onWorkerPurged)));
+            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval ?? DefaultPurgeInterval, onWorkerPurged)));
             DefaultMaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? DefaultMaxExecutionTimePerAskCall;
         }
 
-   
+        #endregion Constructors
 
-        #endregion
+        #region HAS ID NO COMMAND HAS RESULT
 
-        #region  HAS ID NO COMMAND HAS RESULT
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
          string id
        , Func<Task<TResult>> operation
@@ -114,8 +113,6 @@ namespace EasyExecuteLib
        , Func<ExecutionResult<TResult>, TResult> transformResult = null)
          where TResult : class
         {
-
-
             return _easyExecuteMain.Execute(
                 id
               , new object()
@@ -135,8 +132,6 @@ namespace EasyExecuteLib
          , Func<ExecutionResult<TResult>, TResult> transformResult = null)
            where TResult : class
         {
-
-
             return _easyExecuteMain.Execute(
                 id
               , new object()
@@ -147,10 +142,9 @@ namespace EasyExecuteLib
               , executionOptions);
         }
 
+        #endregion HAS ID NO COMMAND HAS RESULT
 
-        #endregion
-
-        #region  HAS ID  HAS COMMAND HAS RESULT
+        #region HAS ID  HAS COMMAND HAS RESULT
 
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
         string id
@@ -160,8 +154,6 @@ namespace EasyExecuteLib
       , ExecutionRequestOptions executionOptions = null
       , Func<ExecutionResult<TResult>, TResult> transformResult = null) where TResult : class
         {
-
-
             return _easyExecuteMain.Execute(
                 id
               , command
@@ -172,7 +164,6 @@ namespace EasyExecuteLib
               , executionOptions);
         }
 
-
         public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
          string id
        , TCommand command
@@ -182,8 +173,6 @@ namespace EasyExecuteLib
        , ExecutionRequestOptions executionOptions = null
        , Func<ExecutionResult<TResult>, TResult> transformResult = null) where TResult : class
         {
-
-
             return _easyExecuteMain.Execute(
                 id
               , command
@@ -194,9 +183,10 @@ namespace EasyExecuteLib
               , executionOptions);
         }
 
-        #endregion
+        #endregion HAS ID  HAS COMMAND HAS RESULT
 
-        #region  HAS ID   HAS COMMAND  NO RESULT
+        #region HAS ID   HAS COMMAND  NO RESULT
+
         public async Task<ExecutionResult> ExecuteAsync<TCommand>(
         string id
       , TCommand command
@@ -204,8 +194,6 @@ namespace EasyExecuteLib
       , TimeSpan? maxExecutionTimePerAskCall = null
       , ExecutionRequestOptions executionOptions = null)
         {
-
-
             var result = await _easyExecuteMain.Execute<object, TCommand>(
                 id
               , command
@@ -231,8 +219,6 @@ namespace EasyExecuteLib
        , TimeSpan? maxExecutionTimePerAskCall = null
        , ExecutionRequestOptions executionOptions = null)
         {
-
-
             var result = await _easyExecuteMain.Execute<object, TCommand>(
                 id
               , command
@@ -248,9 +234,10 @@ namespace EasyExecuteLib
                 WorkerId = result.WorkerId
             };
         }
-        #endregion
 
-        #region  HAS ID  NO COMMAND  NO RESULT
+        #endregion HAS ID   HAS COMMAND  NO RESULT
+
+        #region HAS ID  NO COMMAND  NO RESULT
 
         public async Task<ExecutionResult> ExecuteAsync(
          string id
@@ -296,9 +283,11 @@ namespace EasyExecuteLib
                 WorkerId = result.WorkerId
             };
         }
-        #endregion
+
+        #endregion HAS ID  NO COMMAND  NO RESULT
 
         #region NO ID NO COMMAND  NO RESULT
+
         public async Task<ExecutionResult> ExecuteAsync(
          Action operation
        , TimeSpan? maxExecutionTimePerAskCall
@@ -319,7 +308,6 @@ namespace EasyExecuteLib
                 WorkerId = result.WorkerId
             };
         }
-
 
         public async Task<ExecutionResult> ExecuteAsync(
         Action operation
@@ -383,7 +371,8 @@ namespace EasyExecuteLib
                 WorkerId = result.WorkerId
             };
         }
-        #endregion
+
+        #endregion NO ID NO COMMAND  NO RESULT
 
         public async Task<ExecutionResult<GetWorkHistoryCompletedMessage>> GetWorkHistoryAsync(string workId = null)
         {
@@ -404,9 +393,7 @@ namespace EasyExecuteLib
                     Errors = new List<string>() { e.Message + " - " + e.InnerException?.Message },
                     Result = new GetWorkHistoryCompletedMessage(new List<Worker>(), DateTime.UtcNow)
                 };
-
             }
         }
-
     }
 }

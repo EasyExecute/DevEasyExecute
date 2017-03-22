@@ -39,14 +39,14 @@ namespace EasyExecute.Reception
                 }
                 else if (string.IsNullOrEmpty(message.Id))
                 {
-                    Sender.Tell(new SetWorkErrorMessage($"Null or empty ID: {message.Id} at {LastAccessedTime}", message.Id,null));
+                    Sender.Tell(new SetWorkErrorMessage($"Null or empty ID: {message.Id} at {LastAccessedTime}", message.Id, null));
                 }
                 else
                 {
                     ServiceWorkerStore.Add(message.Id, new Worker(message.Id, new WorkerStatus
                     {
                         CreatedDateTime = DateTime.UtcNow
-                    }, null,message.Command,message.StoreCommands,message.PurgeAt));
+                    }, null, message.Command, message.StoreCommands, message.ExpiresAt));
                     serviceWorkerActorRef.Forward(message);
                 }
             });
@@ -56,7 +56,7 @@ namespace EasyExecute.Reception
             });
             Receive<PurgeMessage>(_ =>
             {
-                var workers = ServiceWorkerStore.Where(x=>x.Value.PurgeAt==null || x.Value.PurgeAt<=DateTime.UtcNow).Select(x => x.Key).ToList();
+                var workers = ServiceWorkerStore.Where(x => x.Value.ExpiresAt == null || x.Value.ExpiresAt <= DateTime.UtcNow).Select(x => x.Key).ToList();
                 workers.ForEach(RemoveWorkerFromDictionary);
             });
             Receive<SetWorkSucceededMessage>(message =>
@@ -69,7 +69,7 @@ namespace EasyExecute.Reception
                     CreatedDateTime = work.WorkerStatus.CreatedDateTime,
                     CompletedDateTime = DateTime.UtcNow,
                     IsCompleted = true
-                }, message.Result, work.StoreCommands? work.Command:null,work.StoreCommands,work.PurgeAt));
+                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt));
             });
             Context.System.Scheduler.ScheduleTellRepeatedly(PurgeInterval, PurgeInterval, Self, new PurgeMessage(), Self);
         }

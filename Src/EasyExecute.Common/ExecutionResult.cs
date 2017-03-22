@@ -14,7 +14,8 @@ namespace EasyExecute.Common
         public bool Succeeded { set; get; }
         public string WorkerId { get; set; }
     }
-    public class ExecutionResult: ExecutionResult<object>
+
+    public class ExecutionResult : ExecutionResult<object>
     {
         public ExecutionResult()
         {

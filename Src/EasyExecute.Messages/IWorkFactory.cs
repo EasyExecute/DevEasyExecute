@@ -5,6 +5,7 @@ namespace EasyExecute.Messages
     public interface IWorkFactory
     {
         bool RunAsyncMethod { set; get; }
+        int MaxRetryCount { get; set; }
 
         object Execute();
 

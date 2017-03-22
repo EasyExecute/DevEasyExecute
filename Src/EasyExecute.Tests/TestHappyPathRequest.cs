@@ -1,6 +1,6 @@
+using EasyExecute.Common;
 using System;
 using System.Threading.Tasks;
-using EasyExecute.Common;
 
 namespace EasyExecute.Tests
 {

@@ -40,7 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExecutionRequestOPtions.cs" />
+    <Compile Include="ExecutionRequestOptions.cs" />
     <Compile Include="ExecutionResult.cs" />
     <Compile Include="WorkFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

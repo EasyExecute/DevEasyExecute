@@ -1,9 +1,9 @@
-using EasyExecute.Messages;
+using Akka.Actor;
+using EasyExecute.Common;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using EasyExecute.Common;
 using Xunit;
 using Xunit.Sdk;
 
@@ -11,30 +11,194 @@ namespace EasyExecute.Tests
 {
     public class when_concurrent_service_is_used
     {
+        [Fact]
+        public void it_should_be_able_to_retry4()
+        {
+            var total = 1000;
+            var counter = 0;
+            var service = new EasyExecuteLib.EasyExecute(null, null,
+                ActorSystem.Create("ConcurrentExecutorServiceActorSystem", "akka { } akka.actor{ }  akka.remote {  } "),
+                null, TimeSpan.FromSeconds(5));
+
+            var result = service.ExecuteAsync("1", async () =>
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(10));
+                counter++;
+                return new object();
+            }, (r) => counter < total + 2, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true,
+                MaxRetryCount = total
+            }, (r) => r.Result).Result;
+            Assert.False(result.Succeeded);
+            Assert.Equal(total + 1, counter);
+        }
+
+        [Fact]
+        public void it_should_be_able_to_retry3()
+        {
+            var total = 1000;
+            var counter = 0;
+            var service = new EasyExecuteLib.EasyExecute(null, null,
+                ActorSystem.Create("ConcurrentExecutorServiceActorSystem", "akka { } akka.actor{ }  akka.remote {  } "),
+                null, TimeSpan.FromSeconds(5));
+            foreach (var i in Enumerable.Range(1, total))
+            {
+                var result = service.ExecuteAsync("1", async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(10));
+                    counter++;
+                    return new object();
+                }, (r) => i < total + 1, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+                {
+                    CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                    ReturnExistingResultWhenDuplicateId = true,
+                    StoreCommands = true
+                }, (r) => r.Result).Result;
+                Assert.False(result.Succeeded);
+                Assert.True(counter == i);
+            }
+        }
+
+        [Fact]
+        public void it_should_be_able_to_retry2()
+        {
+            var counter = 0;
+            var service = new EasyExecuteLib.EasyExecute(null, null,
+                ActorSystem.Create("ConcurrentExecutorServiceActorSystem", "akka { } akka.actor{ }  akka.remote {  } "),
+                null, TimeSpan.FromSeconds(5));
+            var result = service.ExecuteAsync("1", async () =>
+            {
+                counter++;
+                return await Task.FromResult(new object());
+            }, (r) => counter < 4, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true
+            }, (r) => r.Result).Result;
+            Assert.False(result.Succeeded);
+            Assert.True(counter == 1);
+        }
+
+        [Fact]
+        public void it_should_be_able_to_retry()
+        {
+            var counter = 0;
+            var service = new EasyExecuteLib.EasyExecute(null, null, ActorSystem.Create("ConcurrentExecutorServiceActorSystem", "akka { } akka.actor{ }  akka.remote {  } "), null, TimeSpan.FromSeconds(5));
+            var result = service.ExecuteAsync("1", async () =>
+            {
+                counter++;
+                return await Task.FromResult(new object());
+            }, (r) => counter < 4, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true,
+                MaxRetryCount = 4
+            }, (r) => r.Result).Result;
+            Assert.True(result.Succeeded);
+            Assert.True(counter == 4);
+
+            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+            result = service.ExecuteAsync("1", async () =>
+            {
+                counter++;
+                return await Task.FromResult(new object());
+            }, (r) => counter < 4, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true,
+                MaxRetryCount = 4
+            }, (r) => r.Result).Result;
+            Assert.False(result.Succeeded);
+            Assert.True(counter == 4);
+            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+
+            result = service.ExecuteAsync("1", async () =>
+            {
+                counter++;
+                return await Task.FromResult(new object());
+            }, (r) => counter < 4, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true,
+                MaxRetryCount = 4
+            }, (r) => r.Result).Result;
+            Assert.True(result.Succeeded);
+            Assert.True(counter == 5);
+        }
+
+        [Fact]
+        public void it_should_be_able_to_set_cache_expiration_per_call()
+        {
+            var service = new EasyExecuteLib.EasyExecute(null, null, ActorSystem.Create("ConcurrentExecutorServiceActorSystem", "akka { } akka.actor{ }  akka.remote {  } "), null, TimeSpan.FromSeconds(5));
+            var result = service.ExecuteAsync("1", async () =>
+            {
+                return await Task.FromResult(new object());
+            }, (r) => false, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true
+            }, (r) => r.Result).Result;
+
+            Assert.True(result.Succeeded);
+            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+            result = service.ExecuteAsync("1", async () =>
+            {
+                return await Task.FromResult(new object());
+            }, (r) => false, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true
+            }, (r) => r.Result).Result;
+
+            Assert.False(result.Succeeded);
+            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+
+            result = service.ExecuteAsync("1", async () =>
+            {
+                return await Task.FromResult(new object());
+            }, (r) => false, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true
+            }, (r) => r.Result).Result;
+
+            Assert.True(result.Succeeded);
+        }
 
         [Fact]
         public void test()
         {
             var service = new EasyExecuteLib.EasyExecute();
-            var t= service.ExecuteAsync("1", 
-                () => Task.FromResult(new object()), 
-                (finalResult) => false, 
+            var t = service.ExecuteAsync("1",
+                () => Task.FromResult(new object()),
+                (finalResult) => false,
                 TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
                 {
                     ReturnExistingResultWhenDuplicateId = true
                 }, (executionResult) => executionResult.Result).Result.Result;
 
             Assert.NotNull(t);
-            var history=  service.GetWorkHistoryAsync().Result;
+            var history = service.GetWorkHistoryAsync().Result;
             Assert.True(history.Result.WorkHistory.First().WorkerStatus.IsCompleted);
         }
+
         [Fact]
         public void test3()
         {
             var service = new EasyExecuteLib.EasyExecute();
-            var t = (service.ExecuteAsync("1",DateTime.UtcNow,
-                (d) => Task.FromResult(new {time=d}),
-                (finalResult) => false, 
+            var t = (service.ExecuteAsync("1", DateTime.UtcNow,
+                (d) => Task.FromResult(new { time = d }),
+                (finalResult) => false,
                 TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
                 {
                     ReturnExistingResultWhenDuplicateId = true
@@ -44,6 +208,7 @@ namespace EasyExecute.Tests
             var history = service.GetWorkHistoryAsync().Result;
             Assert.True(history.Result.WorkHistory.First().WorkerStatus.IsCompleted);
         }
+
         [Fact]
         public void test2()
         {
@@ -54,7 +219,7 @@ namespace EasyExecute.Tests
             }, (finalResult) =>
             {
                 return false;
-            },  TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
+            }, TimeSpan.FromSeconds(5), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
             })).Result.Result;
@@ -69,7 +234,7 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", () =>
             {
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait(); return Task.FromResult(new object());
-            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
             }).Result;
@@ -82,8 +247,8 @@ namespace EasyExecute.Tests
             var service = new EasyExecuteLib.EasyExecute();
             var result = service.ExecuteAsync<object>("1", async () =>
             {
-                await  Task.Delay(TimeSpan.FromSeconds(1)); return new object();
-            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+                await Task.Delay(TimeSpan.FromSeconds(1)); return new object();
+            }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
             }).Result;
@@ -97,13 +262,12 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", async () =>
             {
                 await Task.Delay(TimeSpan.FromSeconds(1)); return Task.FromResult(new object());
-            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
             }).Result;
             Assert.True(result.Succeeded);
         }
-
 
         [Fact]
         public void test_max_execution_time_exceeded_should_return_correct_value_when_called_again()
@@ -114,7 +278,7 @@ namespace EasyExecute.Tests
             {
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 return await Task.FromResult(now);
-            }, (r) => false,  TimeSpan.FromSeconds(1), new ExecutionRequestOptions()
+            }, (r) => false, TimeSpan.FromSeconds(1), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
             }).Result;
@@ -122,20 +286,18 @@ namespace EasyExecute.Tests
             Assert.NotEqual(now, result.Result);
             SimulateNormalClient();
             SimulateNormalClient();
-           
+
             result = service.ExecuteAsync<object>("1", async () =>
             {
-                await  Task.Delay(TimeSpan.FromSeconds(1)); return await Task.FromResult(DateTime.UtcNow);
-            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+                await Task.Delay(TimeSpan.FromSeconds(1)); return await Task.FromResult(DateTime.UtcNow);
+            }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
             }).Result;
 
             Assert.False(result.Succeeded);
-            Assert.Equal(now,result.Result);
-
+            Assert.Equal(now, result.Result);
         }
-
 
         [Fact]
         public void test_max_execution_time_exceeded()
@@ -144,7 +306,7 @@ namespace EasyExecute.Tests
             var result = service.ExecuteAsync<object>("1", () =>
             {
                 Task.Delay(TimeSpan.FromSeconds(6)).Wait(); return Task.FromResult(new object());
-            }, (r) => false,  TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
+            }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
             }).Result;
@@ -155,9 +317,9 @@ namespace EasyExecute.Tests
         public void test_max_execution_time_exceeded2()
         {
             var service = new EasyExecuteLib.EasyExecute();
-            var result = service.ExecuteAsync<object>("1", async() =>
+            var result = service.ExecuteAsync<object>("1", async () =>
             {
-                await  Task.Delay(TimeSpan.FromSeconds(6)); return new object();
+                await Task.Delay(TimeSpan.FromSeconds(6)); return new object();
             }, (r) => false, TimeSpan.FromSeconds(3), new ExecutionRequestOptions()
             {
                 ReturnExistingResultWhenDuplicateId = true
@@ -195,7 +357,7 @@ namespace EasyExecute.Tests
 
         private static void SimulateNormalClient()
         {
-//simulating fast client send
+            //simulating fast client send
             System.Threading.Thread.Sleep(1000);
             System.Threading.Thread.Sleep(1000);
             System.Threading.Thread.Sleep(1000);
@@ -322,7 +484,7 @@ namespace EasyExecute.Tests
                         basketId =>
                         {
                             var result =
-                                service.ExecuteAsync(basketId, () =>  purchaseService.RunPurchaseServiceAsync(basketId)).Result;
+                                service.ExecuteAsync(basketId, () => purchaseService.RunPurchaseServiceAsync(basketId)).Result;
                         });
                 },
                 maxExecutionTimePerAskCall);
