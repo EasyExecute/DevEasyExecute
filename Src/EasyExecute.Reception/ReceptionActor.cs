@@ -5,6 +5,7 @@ using EasyExecute.ServiceWorker;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EasyExecute.ExecutionQuery;
 
 namespace EasyExecute.Reception
 {
@@ -19,9 +20,14 @@ namespace EasyExecute.Reception
             OnWorkersPurged = onWorkersPurged;
             PurgeInterval = purgeInterval;
             ServiceWorkerStore = new Dictionary<string, Worker>();
-            var serviceWorkerActorRef =
-                Context.ActorOf(Props.Create(() => new ServiceWorkerActor(Self)).WithRouter(new RoundRobinPool(10)));
 
+            var executionQueryActorRef = Context.ActorOf(Props.Create(() => new ExecutionQueryActor()));
+
+
+            var serviceWorkerActorRef =
+                Context.ActorOf(Props.Create(() => new ServiceWorkerActor(Self, executionQueryActorRef)).WithRouter(new RoundRobinPool(10)));
+
+            
             Receive<GetWorkHistoryMessage>(message =>
             {
                 Sender.Tell(string.IsNullOrEmpty(message.WorkId)
@@ -52,6 +58,19 @@ namespace EasyExecute.Reception
             });
             Receive<SetWorkErrorMessage>(message =>
             {
+                if (!ServiceWorkerStore.ContainsKey(message.WorkerId)) return;
+
+                var work = ServiceWorkerStore[message.WorkerId];
+                var worker = new Worker(message.WorkerId, new WorkerStatus
+                {
+                    CreatedDateTime = work.WorkerStatus.CreatedDateTime,
+                    CompletedDateTime = DateTime.UtcNow,
+                    IsCompleted = true,
+                    Succeeded = false
+                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt);
+                
+                executionQueryActorRef.Tell(new ArchiveWorkMessage(message.WorkerId, worker));
+
                 RemoveWorkerFromDictionary(message.WorkerId);
             });
             Receive<PurgeMessage>(_ =>
@@ -62,14 +81,20 @@ namespace EasyExecute.Reception
             Receive<SetWorkSucceededMessage>(message =>
             {
                 if (!ServiceWorkerStore.ContainsKey(message.WorkerId)) return;
+
                 var work = ServiceWorkerStore[message.WorkerId];
                 ServiceWorkerStore.Remove(message.WorkerId);
-                ServiceWorkerStore.Add(message.WorkerId, new Worker(message.WorkerId, new WorkerStatus
+                var worker = new Worker(message.WorkerId, new WorkerStatus
                 {
                     CreatedDateTime = work.WorkerStatus.CreatedDateTime,
                     CompletedDateTime = DateTime.UtcNow,
-                    IsCompleted = true
-                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt));
+                    IsCompleted = true,
+                    Succeeded = true
+                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt);
+                ServiceWorkerStore.Add(message.WorkerId,worker);
+
+                executionQueryActorRef.Tell(new ArchiveWorkMessage(message.WorkerId,worker));
+
             });
             Context.System.Scheduler.ScheduleTellRepeatedly(PurgeInterval, PurgeInterval, Self, new PurgeMessage(), Self);
         }

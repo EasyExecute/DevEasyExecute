@@ -7,19 +7,20 @@ namespace EasyExecute.ServiceWorker
 {
     public class ServiceWorkerActor : ReceiveActor
     {
-        public ServiceWorkerActor(IActorRef parent)
+        public ServiceWorkerActor(IActorRef parent,IActorRef executionQueryActorRef)
         {
             Receive<SetWorkMessage>(message =>
             {
-                Execute(parent, message, Sender);
+                Execute(parent, message, Sender, executionQueryActorRef);
             });
         }
 
-        private void Execute(IActorRef parent, SetWorkMessage message, IActorRef sender)
+        private void Execute(IActorRef parent, SetWorkMessage message, IActorRef sender,IActorRef executionQueryActorRef)
         {
             var messageClosure = message;
             var senderClosure = sender;
             var parentClosure = parent;
+            var executionQueryActorRefClosure = executionQueryActorRef;
             IEasyExecuteResponseMessage resultMessage;
             try
             {
@@ -53,7 +54,7 @@ namespace EasyExecute.ServiceWorker
                             if (!(resultMessage is SetWorkSucceededMessage) && workFactory.MaxRetryCount > 0)
                             {
                                 messageClosure.WorkFactory.MaxRetryCount--;
-                                Execute(parentClosure, messageClosure, senderClosure);
+                                Execute(parentClosure, messageClosure, senderClosure, executionQueryActorRefClosure);
                             }
                             else
                             {

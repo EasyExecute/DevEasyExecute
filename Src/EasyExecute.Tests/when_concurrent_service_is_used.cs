@@ -453,7 +453,7 @@ namespace EasyExecute.Tests
         {
             const int numberOfRequests = 2000;
             var maxExecutionTimePerAskCall = TimeSpan.FromSeconds(3);
-            const int maxTotalExecutionTimeMs = 4500;
+            const int maxTotalExecutionTimeMs = 6000;
             var service = new EasyExecuteLib.EasyExecute(maxExecutionTimePerAskCall);
             var watch = Stopwatch.StartNew();
             Parallel.ForEach(Enumerable.Range(0, numberOfRequests),

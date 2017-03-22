@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -48,6 +48,10 @@
     <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\EasyExecute.ExecutionQuery\EasyExecute.ExecutionQuery.csproj">
+      <Project>{EA6D5BFB-FF94-4EAF-8258-3C2BEE6B51E2}</Project>
+      <Name>EasyExecute.ExecutionQuery</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EasyExecute.Messages\EasyExecute.Messages.csproj">
       <Project>{363A2A7C-55A0-4784-8DCA-3A534C9792D9}</Project>
       <Name>EasyExecute.Messages</Name>
