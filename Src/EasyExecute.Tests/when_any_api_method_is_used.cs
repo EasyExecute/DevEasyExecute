@@ -1,9 +1,9 @@
-using EasyExecute.Common;
-using EasyExecute.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyExecute.Common;
+using EasyExecute.Messages;
 using Xunit;
 
 namespace EasyExecute.Tests
@@ -11,12 +11,12 @@ namespace EasyExecute.Tests
     public class when_any_api_method_is_used
     {
         [Fact]
-        public void ensure_all_api_works()
+        public void ensure_all_api_works_has_id_no_command_has_result()
         {
-            //default options
+            
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
-            //???
+            
             var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region HAS ID NO COMMAND HAS RESULT
@@ -57,6 +57,16 @@ namespace EasyExecute.Tests
                     ).Result, expectedResult);
 
             #endregion HAS ID NO COMMAND HAS RESULT
+        }
+
+        [Fact]
+        public void ensure_all_api_works_has_id_has_command_has_result()
+        {
+            
+            var workerId = Guid.NewGuid().ToString();
+            var expectedResult = GetHappyPathExpectedResult(workerId);
+            
+            var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region HAS ID  HAS COMMAND HAS RESULT
 
@@ -102,8 +112,16 @@ namespace EasyExecute.Tests
                     ).Result, expectedResult);
 
             #endregion HAS ID  HAS COMMAND HAS RESULT
+        }
 
-
+        [Fact]
+        public void ensure_all_api_works_has_id_no_command_no_result()
+        {
+            
+            var workerId = Guid.NewGuid().ToString();
+            var expectedResult = GetHappyPathExpectedResult(workerId);
+            
+            var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region HAS ID  NO COMMAND  NO RESULT
 
@@ -130,6 +148,16 @@ namespace EasyExecute.Tests
             }, expectedResult);
 
             #endregion HAS ID  NO COMMAND  NO RESULT
+        }
+
+        [Fact]
+        public void ensure_all_api_works_no_id_no_command_no_result()
+        {
+            
+            var workerId = Guid.NewGuid().ToString();
+            var expectedResult = GetHappyPathExpectedResult(workerId);
+            
+            var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region NO ID NO COMMAND  NO RESULT
 
