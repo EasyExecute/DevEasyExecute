@@ -24,6 +24,7 @@
     <file src="EasyExecute.Reception.dll" target="lib\net45" />
     <file src="EasyExecute.ServiceWorker.dll" target="lib\net45" />
     <file src="EasyExecute.ActorSystemFactory.dll" target="lib\net45" />
+    <file src="EasyExecute.ExecutionQuery.dll" target="lib\net45" />
     <file src="readme.txt" target="" />
   </files>
 </package>

@@ -27,6 +27,7 @@ let allPackageFiles = [
                         (buildDir+"EasyExecute.Reception.dll");
                         (buildDir+"EasyExecute.ServiceWorker.dll");
                         (buildDir+"EasyExecute.ActorSystemFactory.dll");
+                        (buildDir+"EasyExecute.ExecutionQuery.dll");
                         (buildDir+"readme.txt")
                     ]
 
@@ -64,7 +65,7 @@ let NugetDeployPath= match nugetDeployPath with
                            | _         -> "-"+buildParam
 
 // version info
-let version = "0.4.2-pre" 
+let version = "0.4.3-pre" 
 
 // Targets
 Target "Clean" (fun _ -> 
