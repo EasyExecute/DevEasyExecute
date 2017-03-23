@@ -44,6 +44,7 @@
     <Compile Include="ArchiveWorkLogCompletedMessage.cs" />
     <Compile Include="ArchiveWorkLogMessage.cs" />
     <Compile Include="ArchiveWorkMessage.cs" />
+    <Compile Include="ExecuteReactivelyPlacedMessage.cs" />
     <Compile Include="GetWorkHistory.cs" />
     <Compile Include="GetWorkHistoryCompletedMessage.cs" />
     <Compile Include="GetWorkLogCompletedMessage.cs" />

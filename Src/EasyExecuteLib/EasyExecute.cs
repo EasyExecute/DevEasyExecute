@@ -1,19 +1,19 @@
 using Akka.Actor;
 using EasyExecute.ActorSystemFactory;
 using EasyExecute.Common;
+using EasyExecute.ExecutionQuery;
 using EasyExecute.Messages;
 using EasyExecute.Reception;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using EasyExecute.ExecutionQuery;
 
 namespace EasyExecuteLib
 {
     public class EasyExecute
     {
         private EasyExecuteMain _easyExecuteMain;
-        private ActorSystemCreator ActorSystemCreator { get; set; }
+        internal ActorSystemCreator ActorSystemCreator { get; set; }
         internal TimeSpan DefaultMaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
         internal IActorRef ReceptionActorRef { get; set; }
         internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
@@ -377,9 +377,8 @@ namespace EasyExecuteLib
         }
 
         #endregion NO ID NO COMMAND  NO RESULT
-        
 
-                public async Task<ExecutionResult<GetWorkLogCompletedMessage>> GetWorkLogAsync(string workId = null)
+        public async Task<ExecutionResult<GetWorkLogCompletedMessage>> GetWorkLogAsync(string workId = null)
         {
             try
             {
@@ -400,7 +399,6 @@ namespace EasyExecuteLib
                 };
             }
         }
-
 
         public async Task<ExecutionResult<GetWorkHistoryCompletedMessage>> GetWorkHistoryAsync(string workId = null)
         {
@@ -423,5 +421,18 @@ namespace EasyExecuteLib
                 };
             }
         }
+
+        //public EasyExecuteReactive Reactive { set; get; }
+
     }
+    //public class EasyExecuteReactive
+    //{
+    //    private EasyExecute EasyExecute { set; get; }
+
+    //    public EasyExecuteReactive(EasyExecute easyExecute)
+    //    {
+    //        EasyExecute = easyExecute;
+    //    }
+
+    //}
 }

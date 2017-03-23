@@ -28,8 +28,7 @@ namespace EasyExecuteLib
             if (id == null) throw new ArgumentNullException(nameof(id));
             executionOptions = executionOptions ?? new ExecutionRequestOptions()
             {
-                ReturnExistingResultWhenDuplicateId = true,
-                StoreCommands = false
+                ReturnExistingResultWhenDuplicateId = true
             };
             executionOptions.CacheExpirationPeriod = executionOptions.CacheExpirationPeriod;
 
@@ -49,7 +48,26 @@ namespace EasyExecuteLib
                 var expiration = executionOptions.CacheExpirationPeriod == null
                       ? (DateTime?)null
                       : DateTime.UtcNow.AddMilliseconds(executionOptions.CacheExpirationPeriod.Value.TotalMilliseconds);
-                result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(new SetWorkMessage(id, command, new WorkFactory(async (o) => await operation((TCommand)o), (r) => hasFailed?.Invoke((TResult)r) ?? false, executionOptions.MaxRetryCount), executionOptions.StoreCommands, expiration), maxExecTime).ConfigureAwait(false);
+
+                var setWorkMessage = new SetWorkMessage(
+                    id
+                    , command
+                    , new WorkFactory(async (o) => await operation((TCommand) o)
+                        , (r) => hasFailed?.Invoke((TResult) r) ?? false
+                        , executionOptions.MaxRetryCount)
+                    , executionOptions.StoreCommands
+                    , expiration);
+
+                if (executionOptions.ExecuteReactively)
+                {
+                   result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(setWorkMessage,maxExecTime);
+                }
+                else
+                {
+                  _easyExecute.ReceptionActorRef.Tell(setWorkMessage);
+                  result= new ExecuteReactivelyPlacedMessage(id);
+                }
+
             }
             catch (Exception e)
             {
@@ -69,6 +87,11 @@ namespace EasyExecuteLib
                 {
                     finalResult.Result = (result as SetCompleteWorkErrorMessage)?.LastSuccessfullResult as TResult;
                 }
+            }
+            else if(result is ExecuteReactivelyPlacedMessage)
+            {
+                finalResult.Succeeded = true;
+                finalResult.Result = null;
             }
             else
             {
