@@ -40,6 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArchiveWorkCompletedMessage.cs" />
+    <Compile Include="ArchiveWorkLogCompletedMessage.cs" />
+    <Compile Include="ArchiveWorkLogMessage.cs" />
     <Compile Include="ArchiveWorkMessage.cs" />
     <Compile Include="GetWorkHistory.cs" />
     <Compile Include="GetWorkHistoryCompletedMessage.cs" />

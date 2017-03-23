@@ -6,6 +6,7 @@ using EasyExecute.Reception;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using EasyExecute.ExecutionQuery;
 
 namespace EasyExecuteLib
 {
@@ -97,9 +98,12 @@ namespace EasyExecuteLib
             _easyExecuteMain = new EasyExecuteMain(this);
             ActorSystemCreator = new ActorSystemCreator();
             ActorSystemCreator.CreateOrSetUpActorSystem(serverActorSystemName, actorSystem, actorSystemConfig);
-            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval ?? DefaultPurgeInterval, onWorkerPurged)));
+            ExecutionQueryActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ExecutionQueryActor()));
+            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval ?? DefaultPurgeInterval, onWorkerPurged, ExecutionQueryActorRef)));
             DefaultMaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? DefaultMaxExecutionTimePerAskCall;
         }
+
+        public IActorRef ExecutionQueryActorRef { get; set; }
 
         #endregion Constructors
 
@@ -373,6 +377,30 @@ namespace EasyExecuteLib
         }
 
         #endregion NO ID NO COMMAND  NO RESULT
+        
+
+                public async Task<ExecutionResult<GetWorkLogCompletedMessage>> GetWorkLogAsync(string workId = null)
+        {
+            try
+            {
+                var result = await ExecutionQueryActorRef.Ask<GetWorkLogCompletedMessage>(new GetWorkLogMessage(workId));
+                return new ExecutionResult<GetWorkLogCompletedMessage>()
+                {
+                    Succeeded = true,
+                    Result = result
+                };
+            }
+            catch (Exception e)
+            {
+                return new ExecutionResult<GetWorkLogCompletedMessage>()
+                {
+                    Succeeded = false,
+                    Errors = new List<string>() { e.Message + " - " + e.InnerException?.Message },
+                    Result = new GetWorkLogCompletedMessage(new List<Worker>())
+                };
+            }
+        }
+
 
         public async Task<ExecutionResult<GetWorkHistoryCompletedMessage>> GetWorkHistoryAsync(string workId = null)
         {

@@ -1,16 +1,14 @@
 namespace EasyExecute.Messages
 {
-    public class ArchiveWorkMessage : IEasyExecuteResponseMessage
+    public class ArchiveWorkMessage : IEasyExecuteRequestMessage
     {
-        public ArchiveWorkMessage( string workerId, Worker worker, string message)
+        public ArchiveWorkMessage( string workerId, Worker worker)
         {
             WorkerId = workerId;
             Worker = worker;
-            Message = message;
         }
 
         public string WorkerId { get; private set; }
         public Worker Worker { get; private set; }
-        public string Message { get; private set; }
     }
 }

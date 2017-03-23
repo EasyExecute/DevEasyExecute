@@ -64,6 +64,10 @@
       <Project>{cff98d13-fbe2-4a3a-9a0f-80764c6caf13}</Project>
       <Name>EasyExecute.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\EasyExecute.ExecutionQuery\EasyExecute.ExecutionQuery.csproj">
+      <Project>{EA6D5BFB-FF94-4EAF-8258-3C2BEE6B51E2}</Project>
+      <Name>EasyExecute.ExecutionQuery</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EasyExecute.Messages\EasyExecute.Messages.csproj">
       <Project>{363a2a7c-55a0-4784-8dca-3a534c9792d9}</Project>
       <Name>EasyExecute.Messages</Name>
