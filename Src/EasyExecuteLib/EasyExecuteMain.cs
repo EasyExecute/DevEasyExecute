@@ -30,8 +30,10 @@ namespace EasyExecuteLib
             {
                 ReturnExistingResultWhenDuplicateId = true
             };
-            executionOptions.CacheExpirationPeriod = executionOptions.CacheExpirationPeriod;
-
+            executionOptions.ReturnExistingResultWhenDuplicateId = executionOptions.ReturnExistingResultWhenDuplicateId?? true;
+            executionOptions.CacheExpirationPeriod =
+                executionOptions.CacheExpirationPeriod ?? _easyExecute
+                    .DefaultCacheExpirationPeriod;
             if (transformResult == null)
             {
                 transformResult = (r) => r.Result;
@@ -82,7 +84,7 @@ namespace EasyExecuteLib
             else if (result is SetCompleteWorkErrorMessage)
             {
                 finalResult.Errors.Add((result as SetCompleteWorkErrorMessage).Error);
-                if (executionOptions.ReturnExistingResultWhenDuplicateId)
+                if (executionOptions.ReturnExistingResultWhenDuplicateId.Value)
                 {
                     finalResult.Result = (result as SetCompleteWorkErrorMessage)?.LastSuccessfullResult as TResult;
                 }

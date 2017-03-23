@@ -13,6 +13,38 @@ namespace EasyExecute.Tests
     {
 
         [Fact]
+        public void perf()
+        {
+            var total = 100;
+            var counter = 0;
+            var service = new EasyExecuteLib.EasyExecute();
+
+            var result = service.ExecuteAsync("1", async () =>await Task.FromResult(new object()), (r) => false, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true,
+                MaxRetryCount = total,
+                ExecuteReactively = true
+            }, (r) => r.Result).Result;
+            Assert.True(result.Succeeded);
+
+            bool hasRunAll;
+            var retryCount = 0;
+            do
+            {
+                hasRunAll = service.GetWorkHistoryAsync("1").Result.Result.WorkHistory.Any(x => x.WorkerStatus.Succeeded);
+                Task.Delay(TimeSpan.FromMilliseconds(10)).Wait();
+                retryCount++;
+                if (retryCount > 1000) break;
+            } while (!hasRunAll);
+            Assert.True(total + 1 == counter);
+            Assert.True(retryCount > 0);
+        }
+
+
+
+        [Fact]
         public void test_reactive()
         {
             var total = 100;

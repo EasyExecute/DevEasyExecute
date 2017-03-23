@@ -103,7 +103,8 @@ namespace EasyExecuteLib
             DefaultMaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? DefaultMaxExecutionTimePerAskCall;
         }
 
-        public IActorRef ExecutionQueryActorRef { get; set; }
+        internal IActorRef ExecutionQueryActorRef { get; set; }
+        internal TimeSpan? DefaultCacheExpirationPeriod = TimeSpan.FromDays(365*1000);
 
         #endregion Constructors
 
