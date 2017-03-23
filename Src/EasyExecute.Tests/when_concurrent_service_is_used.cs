@@ -11,6 +11,45 @@ namespace EasyExecute.Tests
 {
     public class when_concurrent_service_is_used
     {
+
+        [Fact]
+        public void test_reactive()
+        {
+            var total = 100;
+            var counter = 0;
+            var service = new EasyExecuteLib.EasyExecute(null, null,
+                ActorSystem.Create("ConcurrentExecutorServiceActorSystem", "akka { } akka.actor{ }  akka.remote {  } "),
+                null, TimeSpan.FromSeconds(5));
+
+            var result = service.ExecuteAsync("1", async () =>
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(10));
+                counter++;
+                return new object();
+            }, (r) => counter < total + 2, TimeSpan.FromHours(1), new ExecutionRequestOptions()
+            {
+                CacheExpirationPeriod = TimeSpan.FromSeconds(10),
+                ReturnExistingResultWhenDuplicateId = true,
+                StoreCommands = true,
+                MaxRetryCount = total,
+                ExecuteReactively = true
+            }, (r) => r.Result).Result;
+            Assert.True(result.Succeeded);
+
+            bool hasRunAll;
+            var retryCount = 0;
+            do
+            {
+                hasRunAll = service.GetWorkHistoryAsync("1").Result.Result.WorkHistory.Any(x => x.WorkerStatus.Succeeded);
+                Task.Delay(TimeSpan.FromMilliseconds(10)).Wait();
+
+                retryCount++;
+                if (retryCount > 1000) break;
+            } while (!hasRunAll);
+            Assert.True(total + 1 == counter);
+            Assert.True(retryCount > 0);
+        }
+
         [Fact]
         public void it_should_be_able_to_retry4()
         {
@@ -191,7 +230,7 @@ namespace EasyExecute.Tests
             var history = service.GetWorkHistoryAsync().Result;
             Assert.True(history.Result.WorkHistory.First().WorkerStatus.IsCompleted);
             var logs = service.GetWorkLogAsync().Result;
-            Assert.True(logs.Result.WorkLog.Count==6);
+            Assert.True(logs.Result.WorkLog.Count == 6);
         }
 
         [Fact]

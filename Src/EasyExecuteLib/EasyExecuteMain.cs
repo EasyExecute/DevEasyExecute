@@ -60,14 +60,13 @@ namespace EasyExecuteLib
 
                 if (executionOptions.ExecuteReactively)
                 {
-                   result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(setWorkMessage,maxExecTime);
+                    _easyExecute.ReceptionActorRef.Tell(setWorkMessage);
+                    result = new ExecuteReactivelyPlacedMessage(id);
                 }
                 else
                 {
-                  _easyExecute.ReceptionActorRef.Tell(setWorkMessage);
-                  result= new ExecuteReactivelyPlacedMessage(id);
+                    result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(setWorkMessage,maxExecTime);
                 }
-
             }
             catch (Exception e)
             {
