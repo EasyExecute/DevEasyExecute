@@ -43,6 +43,8 @@
     <Compile Include="ArchiveWorkMessage.cs" />
     <Compile Include="GetWorkHistory.cs" />
     <Compile Include="GetWorkHistoryCompletedMessage.cs" />
+    <Compile Include="GetWorkLogCompletedMessage.cs" />
+    <Compile Include="GetWorkLogMessage.cs" />
     <Compile Include="IEasyExecuteResponseMessage.cs" />
     <Compile Include="IEasyExecuteRequestMessage.cs" />
     <Compile Include="IWorkFactory.cs" />

@@ -22,6 +22,13 @@ namespace EasyExecute.ExecutionQuery
                 ArchiveServiceWorkerStore[message.WorkerId].Add(message.Worker);
             });
 
+            Receive<GetWorkLogMessage>(message =>
+            {
+                Sender.Tell(string.IsNullOrEmpty(message.WorkId)
+                    ? new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore.SelectMany(x => x.Value).ToList())
+                    : new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore[message.WorkId]));
+            });
+
         }
     }
 }
