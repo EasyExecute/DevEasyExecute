@@ -38,8 +38,8 @@ namespace EasyExecute.ExecutionQuery
             Receive<GetWorkLogMessage>(message =>
             {
                 Sender.Tell(string.IsNullOrEmpty(message.WorkId)
-                    ? new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore.SelectMany(x => x.Value).ToList())
-                    : new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore[message.WorkId]));
+                    ? new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore.SelectMany(x => x.Value).ToList(), ArchiveServiceWorkerLog.SelectMany(x=>x.Value).ToList())
+                    : new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore[message.WorkId], ArchiveServiceWorkerLog[message.WorkId]));
             });
 
         }

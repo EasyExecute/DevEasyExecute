@@ -396,7 +396,7 @@ namespace EasyExecuteLib
                 {
                     Succeeded = false,
                     Errors = new List<string>() { e.Message + " - " + e.InnerException?.Message },
-                    Result = new GetWorkLogCompletedMessage(new List<Worker>())
+                    Result = new GetWorkLogCompletedMessage(new List<Worker>(), new List<string>())
                 };
             }
         }

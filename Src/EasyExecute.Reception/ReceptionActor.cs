@@ -108,9 +108,10 @@ namespace EasyExecute.Reception
 
         public IActorRef ExecutionQueryActorRef { get; set; }
 
-        private void LogSteps(string message, string WorkerId = nameof(ReceptionActor))
+        private void LogSteps(string message, string workerId = null)
         {
-            ExecutionQueryActorRef.Tell(new ArchiveWorkLogMessage(WorkerId, message));
+            workerId = string.IsNullOrEmpty(workerId) ? nameof(ReceptionActor) : workerId;
+            ExecutionQueryActorRef.Tell(new ArchiveWorkLogMessage(workerId, message));
         }
 
         private Dictionary<string, Worker> ServiceWorkerStore { get; }

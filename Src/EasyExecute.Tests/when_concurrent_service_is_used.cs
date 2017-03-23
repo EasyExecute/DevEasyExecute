@@ -176,7 +176,7 @@ namespace EasyExecute.Tests
         }
 
         [Fact]
-        public void test()
+        public void return_execution_history()
         {
             var service = new EasyExecuteLib.EasyExecute();
             var t = service.ExecuteAsync("1",
@@ -190,6 +190,8 @@ namespace EasyExecute.Tests
             Assert.NotNull(t);
             var history = service.GetWorkHistoryAsync().Result;
             Assert.True(history.Result.WorkHistory.First().WorkerStatus.IsCompleted);
+            var logs = service.GetWorkLogAsync().Result;
+            Assert.True(logs.Result.WorkLog.Count==6);
         }
 
         [Fact]
