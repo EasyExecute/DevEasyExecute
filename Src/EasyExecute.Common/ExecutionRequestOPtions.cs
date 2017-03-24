@@ -1,3 +1,4 @@
+using EasyExecute.Messages;
 using System;
 
 namespace EasyExecute.Common
@@ -9,5 +10,6 @@ namespace EasyExecute.Common
         public TimeSpan? CacheExpirationPeriod { set; get; }
         public int MaxRetryCount { set; get; }
         public bool ExecuteReactively { set; get; }
+        public Action<Worker> OnWorkerPurged { set; get; }
     }
 }

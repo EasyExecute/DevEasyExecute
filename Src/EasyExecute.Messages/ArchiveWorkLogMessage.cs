@@ -2,7 +2,7 @@ namespace EasyExecute.Messages
 {
     public class ArchiveWorkLogMessage : IEasyExecuteRequestMessage
     {
-        public ArchiveWorkLogMessage(string workerId,  string message)
+        public ArchiveWorkLogMessage(string workerId, string message)
         {
             WorkerId = workerId;
             Message = message;

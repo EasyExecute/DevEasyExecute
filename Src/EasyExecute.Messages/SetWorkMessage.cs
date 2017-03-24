@@ -4,7 +4,7 @@ namespace EasyExecute.Messages
 {
     public class SetWorkMessage : IEasyExecuteRequestMessage
     {
-        public SetWorkMessage(string id, object command, IWorkFactory workFactory, bool storeCommands, DateTime? expiresAt, bool dontCacheResultById)
+        public SetWorkMessage(string id, object command, IWorkFactory workFactory, bool storeCommands, DateTime? expiresAt, bool dontCacheResultById, Action<Worker> onWorkerPurged)
         {
             Id = id;
             WorkFactory = workFactory;
@@ -12,6 +12,7 @@ namespace EasyExecute.Messages
             StoreCommands = storeCommands;
             ExpiresAt = expiresAt;
             DontCacheResultById = dontCacheResultById;
+            OnWorkerPurged = onWorkerPurged;
         }
 
         public string Id { get; private set; }
@@ -20,5 +21,6 @@ namespace EasyExecute.Messages
         public bool StoreCommands { get; private set; }
         public DateTime? ExpiresAt { get; private set; }
         public bool DontCacheResultById { private set; get; }
+        public Action<Worker> OnWorkerPurged { set; get; }
     }
 }

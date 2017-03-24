@@ -12,99 +12,32 @@ namespace EasyExecuteLib
 {
     public class EasyExecute
     {
-        private EasyExecuteMain _easyExecuteMain;
+        private readonly EasyExecuteMain _easyExecuteMain;
         internal ActorSystemCreator ActorSystemCreator { get; set; }
         internal TimeSpan DefaultMaxExecutionTimePerAskCall = TimeSpan.FromSeconds(5);
         internal IActorRef ReceptionActorRef { get; set; }
         internal const bool DefaultReturnExistingResultWhenDuplicateId = true;
-
-        //internal readonly int CacheExpirationNextHours = 1;
         internal TimeSpan DefaultPurgeInterval = TimeSpan.FromSeconds(30);
-
+        internal IActorRef ExecutionQueryActorRef { get; set; }
+        internal TimeSpan? DefaultCacheExpirationPeriod = TimeSpan.FromDays(365 * 1000);
+        
         #region Constructors
 
-        public EasyExecute(
-            TimeSpan? maxExecutionTimePerAskCall
-          , string serverActorSystemName
-          , ActorSystem actorSystem
-          , string actorSystemConfig = null
-          , TimeSpan? purgeInterval = null
-          , Action<Worker> onWorkerPurged = null)
+        public EasyExecute(EasyExecuteOptions easyExecuteOptions = null)
         {
-            InitializeEasyExecute(
-            maxExecutionTimePerAskCall
-          , serverActorSystemName
-          , actorSystem
-          , actorSystemConfig
-          , purgeInterval
-          , onWorkerPurged);
-        }
 
-        public EasyExecute(
-           TimeSpan? maxExecutionTimePerAskCall
-         , ActorSystem actorSystem
-         , string actorSystemConfig
-         , TimeSpan? purgeInterval = null
-         , Action<Worker> onWorkerPurged = null)
-        {
-            InitializeEasyExecute(
-            maxExecutionTimePerAskCall
-          , null
-          , actorSystem
-          , actorSystemConfig
-          , purgeInterval
-          , onWorkerPurged);
-        }
-
-        public EasyExecute(
-          ActorSystem actorSystem
-        , string actorSystemConfig
-        , TimeSpan? purgeInterval = null
-        , Action<Worker> onWorkerPurged = null)
-        {
-            InitializeEasyExecute(
-            null
-          , null
-          , actorSystem
-          , actorSystemConfig
-          , purgeInterval
-          , onWorkerPurged);
-        }
-
-        public EasyExecute(
-        TimeSpan? purgeInterval = null
-      , Action<Worker> onWorkerPurged = null)
-        {
-            InitializeEasyExecute(
-            null
-          , null
-          , null
-          , null
-          , purgeInterval
-          , onWorkerPurged);
-        }
-
-        private void InitializeEasyExecute(
-            TimeSpan? maxExecutionTimePerAskCall = null
-          , string serverActorSystemName = null
-          , ActorSystem actorSystem = null
-          , string actorSystemConfig = null
-          , TimeSpan? purgeInterval = null
-          , Action<Worker> onWorkerPurged = null)
-        {
-            serverActorSystemName = (string.IsNullOrEmpty(serverActorSystemName) && actorSystem == null)
+            easyExecuteOptions = easyExecuteOptions ?? new EasyExecuteOptions();
+            easyExecuteOptions.serverActorSystemName = (string.IsNullOrEmpty(easyExecuteOptions.serverActorSystemName) && easyExecuteOptions.actorSystem == null)
                 ? Guid.NewGuid().ToString()
-                : serverActorSystemName;
+                : easyExecuteOptions.serverActorSystemName;
             _easyExecuteMain = new EasyExecuteMain(this);
             ActorSystemCreator = new ActorSystemCreator();
-            ActorSystemCreator.CreateOrSetUpActorSystem(serverActorSystemName, actorSystem, actorSystemConfig);
+            ActorSystemCreator.CreateOrSetUpActorSystem(easyExecuteOptions.serverActorSystemName, easyExecuteOptions.actorSystem, easyExecuteOptions.actorSystemConfig);
             ExecutionQueryActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ExecutionQueryActor()));
-            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(purgeInterval ?? DefaultPurgeInterval, onWorkerPurged, ExecutionQueryActorRef)));
-            DefaultMaxExecutionTimePerAskCall = maxExecutionTimePerAskCall ?? DefaultMaxExecutionTimePerAskCall;
+            ReceptionActorRef = ActorSystemCreator.ServiceActorSystem.ActorOf(Props.Create(() => new ReceptionActor(easyExecuteOptions.purgeInterval ?? DefaultPurgeInterval, easyExecuteOptions.onWorkerPurged, ExecutionQueryActorRef)));
+            DefaultMaxExecutionTimePerAskCall = easyExecuteOptions.maxExecutionTimePerAskCall ?? DefaultMaxExecutionTimePerAskCall;
+            Advanced= new AdvancedOptions();
         }
-
-        internal IActorRef ExecutionQueryActorRef { get; set; }
-        internal TimeSpan? DefaultCacheExpirationPeriod = TimeSpan.FromDays(365*1000);
 
         #endregion Constructors
 
@@ -423,17 +356,6 @@ namespace EasyExecuteLib
             }
         }
 
-        //public EasyExecuteReactive Reactive { set; get; }
-
+        private AdvancedOptions Advanced { set; get; }
     }
-    //public class EasyExecuteReactive
-    //{
-    //    private EasyExecute EasyExecute { set; get; }
-
-    //    public EasyExecuteReactive(EasyExecute easyExecute)
-    //    {
-    //        EasyExecute = easyExecute;
-    //    }
-
-    //}
 }

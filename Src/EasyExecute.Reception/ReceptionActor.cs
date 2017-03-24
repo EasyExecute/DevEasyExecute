@@ -5,7 +5,6 @@ using EasyExecute.ServiceWorker;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using EasyExecute.ExecutionQuery;
 
 namespace EasyExecute.Reception
 {
@@ -15,7 +14,7 @@ namespace EasyExecute.Reception
         private TimeSpan PurgeInterval { set; get; }
         private Action<Worker> OnWorkersPurged { set; get; }
 
-        public ReceptionActor(TimeSpan purgeInterval, Action<Worker> onWorkersPurged,IActorRef executionQueryActorRef)
+        public ReceptionActor(TimeSpan purgeInterval, Action<Worker> onWorkersPurged, IActorRef executionQueryActorRef)
         {
             OnWorkersPurged = onWorkersPurged;
             PurgeInterval = purgeInterval;
@@ -56,7 +55,7 @@ namespace EasyExecute.Reception
                     ServiceWorkerStore.Add(message.Id, new Worker(message.Id, new WorkerStatus
                     {
                         CreatedDateTime = DateTime.UtcNow
-                    }, null, message.Command, message.StoreCommands, message.ExpiresAt, message.DontCacheResultById));
+                    }, null, message.Command, message.StoreCommands, message.ExpiresAt, message.DontCacheResultById, message.OnWorkerPurged));
                     serviceWorkerActorRef.Forward(message);
                 }
             });
@@ -72,7 +71,7 @@ namespace EasyExecute.Reception
                     CompletedDateTime = DateTime.UtcNow,
                     IsCompleted = true,
                     Succeeded = false
-                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt, work.DontCacheResultById);
+                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt, work.DontCacheResultById, work.OnWorkerPurged);
 
                 ExecutionQueryActorRef.Tell(new ArchiveWorkMessage(message.WorkerId, worker));
 
@@ -97,7 +96,7 @@ namespace EasyExecute.Reception
                     CompletedDateTime = DateTime.UtcNow,
                     IsCompleted = true,
                     Succeeded = true
-                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt,work.DontCacheResultById);
+                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt, work.DontCacheResultById, work.OnWorkerPurged);
 
                 if (worker.DontCacheResultById)
                 {
@@ -107,10 +106,8 @@ namespace EasyExecute.Reception
                 {
                     ServiceWorkerStore.Add(message.WorkerId, worker);
                 }
-                
 
                 ExecutionQueryActorRef.Tell(new ArchiveWorkMessage(message.WorkerId, worker));
-
             });
             Context.System.Scheduler.ScheduleTellRepeatedly(PurgeInterval, PurgeInterval, Self, new PurgeMessage(), Self);
         }
@@ -138,8 +135,15 @@ namespace EasyExecute.Reception
             }
             catch (Exception e)
             {
-                LogSteps("error executing OnWorkersPurged ", workerId);
-                //todo how to handle?
+                LogSteps("error executing common OnWorkersPurged", workerId);
+            }
+            try
+            {
+                worker.OnWorkerPurged?.Invoke(worker);
+            }
+            catch (Exception e)
+            {
+                LogSteps("error executing inline OnWorkersPurged", workerId);
             }
         }
     }

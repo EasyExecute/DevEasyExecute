@@ -58,6 +58,7 @@
     <Compile Include="when_any_api_method_is_used.cs" />
     <Compile Include="when_concurrent_service_is_used.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="when_concurrent_service_is_used_where_result_are_NOT_cached_by_id.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />

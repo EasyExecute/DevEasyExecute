@@ -1,9 +1,9 @@
+using EasyExecute.Common;
+using EasyExecute.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EasyExecute.Common;
-using EasyExecute.Messages;
 using Xunit;
 
 namespace EasyExecute.Tests
@@ -13,10 +13,9 @@ namespace EasyExecute.Tests
         [Fact]
         public void ensure_all_api_works_has_id_no_command_has_result()
         {
-            
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
-            
+
             var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region HAS ID NO COMMAND HAS RESULT
@@ -62,10 +61,9 @@ namespace EasyExecute.Tests
         [Fact]
         public void ensure_all_api_works_has_id_has_command_has_result()
         {
-            
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
-            
+
             var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region HAS ID  HAS COMMAND HAS RESULT
@@ -117,10 +115,9 @@ namespace EasyExecute.Tests
         [Fact]
         public void ensure_all_api_works_has_id_no_command_no_result()
         {
-            
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
-            
+
             var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region HAS ID  NO COMMAND  NO RESULT
@@ -153,10 +150,9 @@ namespace EasyExecute.Tests
         [Fact]
         public void ensure_all_api_works_no_id_no_command_no_result()
         {
-            
             var workerId = Guid.NewGuid().ToString();
             var expectedResult = GetHappyPathExpectedResult(workerId);
-            
+
             var testHappyPathRequest = GetHappyPathRequest<TestClass, string>(workerId);
 
             #region NO ID NO COMMAND  NO RESULT
@@ -212,7 +208,7 @@ namespace EasyExecute.Tests
                         new Worker(workerId, new WorkerStatus
                         {
                             IsCompleted = true
-                        }, null, null, false, DateTime.UtcNow,true)
+                        }, null, null, false, DateTime.UtcNow,true,null)
                     }, DateTime.UtcNow),
                     WorkerId = null
                 }

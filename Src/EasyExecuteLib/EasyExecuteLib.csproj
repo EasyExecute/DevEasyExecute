@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvancedOptions.cs" />
     <Compile Include="EasyExecute.cs" />
     <Compile Include="EasyExecuteMain.cs" />
+    <Compile Include="EasyExecuteOptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

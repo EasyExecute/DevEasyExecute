@@ -7,7 +7,7 @@ namespace EasyExecute.ServiceWorker
 {
     public class ServiceWorkerActor : ReceiveActor
     {
-        public ServiceWorkerActor(IActorRef parent,IActorRef executionQueryActorRef)
+        public ServiceWorkerActor(IActorRef parent, IActorRef executionQueryActorRef)
         {
             Receive<SetWorkMessage>(message =>
             {
@@ -15,15 +15,14 @@ namespace EasyExecute.ServiceWorker
             });
         }
 
-        private void Execute(IActorRef parent, SetWorkMessage message, IActorRef sender,IActorRef executionQueryActorRef)
+        private void Execute(IActorRef parent, SetWorkMessage message, IActorRef sender, IActorRef executionQueryActorRef)
         {
-            
             var messageClosure = message;
             var senderClosure = sender;
             var parentClosure = parent;
             var executionQueryActorRefClosure = executionQueryActorRef;
             IEasyExecuteResponseMessage resultMessage;
-            executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "worker about to start working"+" - retry count: " + messageClosure.WorkFactory.MaxRetryCount));
+            executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "worker about to start working" + " - retry count: " + messageClosure.WorkFactory.MaxRetryCount));
             try
             {
                 var workFactory = messageClosure.WorkFactory;
@@ -36,7 +35,7 @@ namespace EasyExecute.ServiceWorker
                             {
                                 resultMessage = new SetWorkErrorMessage("Unable to complete operation", messageClosure.Id,
                                     null);
-                                executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "execution result is faulted for work "+messageClosure.Id));
+                                executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "execution result is faulted for work " + messageClosure.Id));
                             }
                             else
                             {
@@ -48,20 +47,18 @@ namespace EasyExecute.ServiceWorker
                                             "operation completed but client said its was a failed operation",
                                             messageClosure.Id, result);
                                     executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation completed but client said its was a failed operation for work " + messageClosure.Id));
-
                                 }
                                 else
                                 {
                                     resultMessage = new SetWorkSucceededMessage(result, messageClosure.Id);
                                     executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation completed successfully for work " + messageClosure.Id));
-
                                 }
                             }
 
                             if (!(resultMessage is SetWorkSucceededMessage) && workFactory.MaxRetryCount > 0)
                             {
                                 messageClosure.WorkFactory.MaxRetryCount--;
-                                executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation retrying for work " + messageClosure.Id+" retry count : " + messageClosure.WorkFactory.MaxRetryCount));
+                                executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation retrying for work " + messageClosure.Id + " retry count : " + messageClosure.WorkFactory.MaxRetryCount));
                                 Execute(parentClosure, messageClosure, senderClosure, executionQueryActorRefClosure);
                             }
                             else

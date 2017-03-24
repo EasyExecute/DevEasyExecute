@@ -27,7 +27,7 @@ namespace EasyExecuteLib
             if (operation == null) throw new ArgumentNullException(nameof(operation));
             if (id == null) throw new ArgumentNullException(nameof(id));
             executionOptions = executionOptions ?? new ExecutionRequestOptions();
-            
+
             executionOptions.CacheExpirationPeriod =
                 executionOptions.CacheExpirationPeriod ?? _easyExecute
                     .DefaultCacheExpirationPeriod;
@@ -51,12 +51,13 @@ namespace EasyExecuteLib
                 var setWorkMessage = new SetWorkMessage(
                     id
                     , command
-                    , new WorkFactory(async (o) => await operation((TCommand) o)
-                        , (r) => hasFailed?.Invoke((TResult) r) ?? false
+                    , new WorkFactory(async (o) => await operation((TCommand)o)
+                        , (r) => hasFailed?.Invoke((TResult)r) ?? false
                         , executionOptions.MaxRetryCount)
                     , executionOptions.StoreCommands
                     , expiration
-                    , executionOptions.DontCacheResultById);
+                    , executionOptions.DontCacheResultById
+                    , executionOptions.OnWorkerPurged);
 
                 if (executionOptions.ExecuteReactively)
                 {
@@ -65,7 +66,7 @@ namespace EasyExecuteLib
                 }
                 else
                 {
-                    result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(setWorkMessage,maxExecTime);
+                    result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(setWorkMessage, maxExecTime);
                 }
             }
             catch (Exception e)
@@ -87,7 +88,7 @@ namespace EasyExecuteLib
                     finalResult.Result = (result as SetCompleteWorkErrorMessage)?.LastSuccessfullResult as TResult;
                 }
             }
-            else if(result is ExecuteReactivelyPlacedMessage)
+            else if (result is ExecuteReactivelyPlacedMessage)
             {
                 finalResult.Succeeded = true;
                 finalResult.Result = null;

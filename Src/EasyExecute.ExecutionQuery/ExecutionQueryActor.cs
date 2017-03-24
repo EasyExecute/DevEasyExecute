@@ -1,9 +1,7 @@
 using Akka.Actor;
-using Akka.Routing;
-using System;
+using EasyExecute.Messages;
 using System.Collections.Generic;
 using System.Linq;
-using EasyExecute.Messages;
 
 namespace EasyExecute.ExecutionQuery
 {
@@ -12,9 +10,10 @@ namespace EasyExecute.ExecutionQuery
         private Dictionary<string, List<Worker>> ArchiveServiceWorkerStore { get; }
 
         public Dictionary<string, List<string>> ArchiveServiceWorkerLog { get; set; }
+
         public ExecutionQueryActor()
         {
-            ArchiveServiceWorkerStore=new Dictionary<string, List<Worker>>();
+            ArchiveServiceWorkerStore = new Dictionary<string, List<Worker>>();
             ArchiveServiceWorkerLog = new Dictionary<string, List<string>>();
             Receive<ArchiveWorkMessage>(message =>
             {
@@ -38,11 +37,9 @@ namespace EasyExecute.ExecutionQuery
             Receive<GetWorkLogMessage>(message =>
             {
                 Sender.Tell(string.IsNullOrEmpty(message.WorkId)
-                    ? new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore.SelectMany(x => x.Value).ToList(), ArchiveServiceWorkerLog.SelectMany(x=>x.Value).ToList())
+                    ? new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore.SelectMany(x => x.Value).ToList(), ArchiveServiceWorkerLog.SelectMany(x => x.Value).ToList())
                     : new GetWorkLogCompletedMessage(ArchiveServiceWorkerStore[message.WorkId], ArchiveServiceWorkerLog[message.WorkId]));
             });
-
         }
-
     }
 }
