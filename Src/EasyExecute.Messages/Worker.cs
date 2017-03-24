@@ -4,7 +4,7 @@ namespace EasyExecute.Messages
 {
     public class Worker
     {
-        public Worker(string workerId, WorkerStatus workerStatus, object result, object command, bool storeCommands, DateTime? expiresAt)
+        public Worker(string workerId, WorkerStatus workerStatus, object result, object command, bool storeCommands, DateTime? expiresAt, bool dontCacheResultById)
         {
             WorkerStatus = workerStatus;
             Result = result;
@@ -12,6 +12,7 @@ namespace EasyExecute.Messages
             WorkerId = workerId;
             StoreCommands = storeCommands;
             ExpiresAt = expiresAt;
+            DontCacheResultById = dontCacheResultById;
         }
 
         public WorkerStatus WorkerStatus { get; private set; }
@@ -20,5 +21,6 @@ namespace EasyExecute.Messages
         public object Command { get; private set; }
         public bool StoreCommands { get; private set; }
         public DateTime? ExpiresAt { get; private set; }
+        public bool DontCacheResultById { private set; get; }
     }
 }

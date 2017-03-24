@@ -56,7 +56,7 @@ namespace EasyExecute.Reception
                     ServiceWorkerStore.Add(message.Id, new Worker(message.Id, new WorkerStatus
                     {
                         CreatedDateTime = DateTime.UtcNow
-                    }, null, message.Command, message.StoreCommands, message.ExpiresAt));
+                    }, null, message.Command, message.StoreCommands, message.ExpiresAt, message.DontCacheResultById));
                     serviceWorkerActorRef.Forward(message);
                 }
             });
@@ -72,7 +72,7 @@ namespace EasyExecute.Reception
                     CompletedDateTime = DateTime.UtcNow,
                     IsCompleted = true,
                     Succeeded = false
-                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt);
+                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt, work.DontCacheResultById);
 
                 ExecutionQueryActorRef.Tell(new ArchiveWorkMessage(message.WorkerId, worker));
 
@@ -97,8 +97,17 @@ namespace EasyExecute.Reception
                     CompletedDateTime = DateTime.UtcNow,
                     IsCompleted = true,
                     Succeeded = true
-                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt);
-                ServiceWorkerStore.Add(message.WorkerId, worker);
+                }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt,work.DontCacheResultById);
+
+                if (!worker.DontCacheResultById)
+                {
+                    RemoveWorkerFromDictionary(worker.WorkerId);
+                }
+                else
+                {
+                    ServiceWorkerStore.Add(message.WorkerId, worker);
+                }
+                
 
                 ExecutionQueryActorRef.Tell(new ArchiveWorkMessage(message.WorkerId, worker));
 

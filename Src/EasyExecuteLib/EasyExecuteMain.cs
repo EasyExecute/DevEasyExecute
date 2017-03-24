@@ -26,11 +26,8 @@ namespace EasyExecuteLib
         {
             if (operation == null) throw new ArgumentNullException(nameof(operation));
             if (id == null) throw new ArgumentNullException(nameof(id));
-            executionOptions = executionOptions ?? new ExecutionRequestOptions()
-            {
-                ReturnExistingResultWhenDuplicateId = true
-            };
-            executionOptions.ReturnExistingResultWhenDuplicateId = executionOptions.ReturnExistingResultWhenDuplicateId?? true;
+            executionOptions = executionOptions ?? new ExecutionRequestOptions();
+            
             executionOptions.CacheExpirationPeriod =
                 executionOptions.CacheExpirationPeriod ?? _easyExecute
                     .DefaultCacheExpirationPeriod;
@@ -58,7 +55,8 @@ namespace EasyExecuteLib
                         , (r) => hasFailed?.Invoke((TResult) r) ?? false
                         , executionOptions.MaxRetryCount)
                     , executionOptions.StoreCommands
-                    , expiration);
+                    , expiration
+                    , executionOptions.DontCacheResultById);
 
                 if (executionOptions.ExecuteReactively)
                 {
@@ -84,7 +82,7 @@ namespace EasyExecuteLib
             else if (result is SetCompleteWorkErrorMessage)
             {
                 finalResult.Errors.Add((result as SetCompleteWorkErrorMessage).Error);
-                if (executionOptions.ReturnExistingResultWhenDuplicateId.Value)
+                if (!executionOptions.DontCacheResultById)
                 {
                     finalResult.Result = (result as SetCompleteWorkErrorMessage)?.LastSuccessfullResult as TResult;
                 }

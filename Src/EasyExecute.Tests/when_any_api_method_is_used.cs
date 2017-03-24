@@ -29,7 +29,7 @@ namespace EasyExecute.Tests
                     , TimeSpan.FromSeconds(5)
                     , new ExecutionRequestOptions
                     {
-                        ReturnExistingResultWhenDuplicateId = true
+                        DontCacheResultById = false
                     }).Result, expectedResult);
             RunTest(workerId, "HAS ID - NO COMMAND - HAS RESULT", (service, id, command) =>
                 service.ExecuteAsync(
@@ -79,7 +79,7 @@ namespace EasyExecute.Tests
                     , TimeSpan.FromSeconds(5)
                     , new ExecutionRequestOptions
                     {
-                        ReturnExistingResultWhenDuplicateId = true
+                        DontCacheResultById = false
                     }).Result, expectedResult);
             RunTest(workerId, "HAS ID - HAS COMMAND - HAS RESULT", (service, id, command) =>
                 service.ExecuteAsync(
@@ -135,7 +135,7 @@ namespace EasyExecute.Tests
                     , TimeSpan.FromSeconds(5)
                     , new ExecutionRequestOptions
                     {
-                        ReturnExistingResultWhenDuplicateId = true
+                        DontCacheResultById = false
                     }).Result;
 
                 return new ExecutionResult<TestClass>
