@@ -99,7 +99,7 @@ namespace EasyExecute.Reception
                     Succeeded = true
                 }, message.Result, work.StoreCommands ? work.Command : null, work.StoreCommands, work.ExpiresAt,work.DontCacheResultById);
 
-                if (!worker.DontCacheResultById)
+                if (worker.DontCacheResultById)
                 {
                     RemoveWorkerFromDictionary(worker.WorkerId);
                 }

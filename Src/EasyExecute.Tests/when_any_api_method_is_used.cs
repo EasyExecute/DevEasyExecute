@@ -212,7 +212,7 @@ namespace EasyExecute.Tests
                         new Worker(workerId, new WorkerStatus
                         {
                             IsCompleted = true
-                        }, null, null, false, DateTime.UtcNow)
+                        }, null, null, false, DateTime.UtcNow,true)
                     }, DateTime.UtcNow),
                     WorkerId = null
                 }
