@@ -43,7 +43,7 @@ namespace EasyExecuteLib
 
         #region HAS ID NO COMMAND HAS RESULT
 
-        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
+        public async Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
          string id
        , Func<Task<TResult>> operation
        , TimeSpan? maxExecutionTimePerAskCall = null
@@ -51,17 +51,17 @@ namespace EasyExecuteLib
        , Func<ExecutionResult<TResult>, TResult> transformResult = null)
          where TResult : class
         {
-            return _easyExecuteMain.Execute(
+            return await _easyExecuteMain.Execute(
                 id
               , new object()
-              , (o) => operation()
+              , async (o) => await operation().ConfigureAwait(false)
               , null
               , maxExecutionTimePerAskCall
               , transformResult
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
         }
 
-        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
+        public async Task<ExecutionResult<TResult>> ExecuteAsync<TResult>(
            string id
          , Func<Task<TResult>> operation
          , Func<TResult, bool> hasFailed
@@ -70,21 +70,21 @@ namespace EasyExecuteLib
          , Func<ExecutionResult<TResult>, TResult> transformResult = null)
            where TResult : class
         {
-            return _easyExecuteMain.Execute(
+            return await _easyExecuteMain.Execute(
                 id
               , new object()
-              , (o) => operation()
+              , async(o) => await operation().ConfigureAwait(false)
               , hasFailed
               , maxExecutionTimePerAskCall
               , transformResult
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
         }
 
         #endregion HAS ID NO COMMAND HAS RESULT
 
         #region HAS ID  HAS COMMAND HAS RESULT
 
-        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
+        public async Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
         string id
       , TCommand command
       , Func<TCommand, Task<TResult>> operation
@@ -92,17 +92,17 @@ namespace EasyExecuteLib
       , ExecutionRequestOptions executionOptions = null
       , Func<ExecutionResult<TResult>, TResult> transformResult = null) where TResult : class
         {
-            return _easyExecuteMain.Execute(
+            return await _easyExecuteMain.Execute(
                 id
               , command
               , operation
               , null
               , maxExecutionTimePerAskCall
               , transformResult
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
         }
 
-        public Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
+        public async Task<ExecutionResult<TResult>> ExecuteAsync<TResult, TCommand>(
          string id
        , TCommand command
        , Func<TCommand, Task<TResult>> operation
@@ -111,14 +111,14 @@ namespace EasyExecuteLib
        , ExecutionRequestOptions executionOptions = null
        , Func<ExecutionResult<TResult>, TResult> transformResult = null) where TResult : class
         {
-            return _easyExecuteMain.Execute(
+            return await _easyExecuteMain.Execute(
                 id
               , command
               , operation
               , hasFailed
               , maxExecutionTimePerAskCall
               , transformResult
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
         }
 
         #endregion HAS ID  HAS COMMAND HAS RESULT
@@ -140,7 +140,7 @@ namespace EasyExecuteLib
 
               , maxExecutionTimePerAskCall
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -164,7 +164,7 @@ namespace EasyExecuteLib
               , (r) => hasFailed()
               , maxExecutionTimePerAskCall
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -190,7 +190,7 @@ namespace EasyExecuteLib
               , null
               , maxExecutionTimePerAskCall
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -213,7 +213,7 @@ namespace EasyExecuteLib
               , (r) => hasFailed()
               , maxExecutionTimePerAskCall
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -238,7 +238,7 @@ namespace EasyExecuteLib
               , null
               , maxExecutionTimePerAskCall
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -258,7 +258,7 @@ namespace EasyExecuteLib
               , null
               , null
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -280,7 +280,7 @@ namespace EasyExecuteLib
               , (r) => hasFailed()
               , maxExecutionTimePerAskCall
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -301,7 +301,7 @@ namespace EasyExecuteLib
               , (r) => hasFailed()
               , null
               , null
-              , executionOptions);
+              , executionOptions).ConfigureAwait(false);
             return new ExecutionResult()
             {
                 Errors = result.Errors,
@@ -316,7 +316,7 @@ namespace EasyExecuteLib
         {
             try
             {
-                var result = await ExecutionQueryActorRef.Ask<GetWorkLogCompletedMessage>(new GetWorkLogMessage(workId));
+                var result = await ExecutionQueryActorRef.Ask<GetWorkLogCompletedMessage>(new GetWorkLogMessage(workId)).ConfigureAwait(false);
                 return new ExecutionResult<GetWorkLogCompletedMessage>()
                 {
                     Succeeded = true,
@@ -338,7 +338,7 @@ namespace EasyExecuteLib
         {
             try
             {
-                var result = await ReceptionActorRef.Ask<GetWorkHistoryCompletedMessage>(new GetWorkHistoryMessage(workId));
+                var result = await ReceptionActorRef.Ask<GetWorkHistoryCompletedMessage>(new GetWorkHistoryMessage(workId)).ConfigureAwait(false);
                 return new ExecutionResult<GetWorkHistoryCompletedMessage>()
                 {
                     Succeeded = true,

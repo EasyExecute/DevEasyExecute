@@ -51,7 +51,7 @@ namespace EasyExecuteLib
                 var setWorkMessage = new SetWorkMessage(
                     id
                     , command
-                    , new WorkFactory(async (o) => await operation((TCommand)o)
+                    , new WorkFactory(async (o) => await operation((TCommand)o).ConfigureAwait(false)
                         , (r) => hasFailed?.Invoke((TResult)r) ?? false
                         , executionOptions.MaxRetryCount)
                     , executionOptions.StoreCommands
@@ -66,7 +66,7 @@ namespace EasyExecuteLib
                 }
                 else
                 {
-                    result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(setWorkMessage, maxExecTime);
+                    result = await _easyExecute.ReceptionActorRef.Ask<IEasyExecuteResponseMessage>(setWorkMessage, maxExecTime).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
