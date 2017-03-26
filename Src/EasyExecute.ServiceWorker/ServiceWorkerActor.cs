@@ -1,6 +1,8 @@
 using Akka.Actor;
+using EasyExecute.Common;
 using EasyExecute.Messages;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EasyExecute.ServiceWorker
@@ -31,29 +33,47 @@ namespace EasyExecute.ServiceWorker
                     workFactory.ExecuteAsync(messageClosure.Command)
                         .ContinueWith(r =>
                         {
+
                             if (r.IsFaulted)
                             {
-                                resultMessage = new SetWorkErrorMessage("Unable to complete operation", messageClosure.Id,
-                                    null);
-                                executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "execution result is faulted for work " + messageClosure.Id));
+                                var exceptionThrown = "";
+                                if (r.Exception != null)
+                                {
+                                    exceptionThrown = r.Exception.Flatten().InnerExceptions.Aggregate(exceptionThrown, (current, exception) => current + string.Join("<br>\n\r", exception.GetMessages()));
+                                }
+                                var excMsg = $"Unable to complete operation {messageClosure.Id} : {exceptionThrown}";
+                                resultMessage = new SetWorkErrorMessage(excMsg, messageClosure.Id, null);
+                                executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, excMsg));
                             }
+
                             else
                             {
-                                var result = r.Result;
-                                if (workFactory.IsAFailedResult(result))
+                                if (r.IsCanceled && messageClosure.FailExecutionIfTaskIsCancelled)
                                 {
-                                    resultMessage =
-                                        new SetWorkErrorMessage(
-                                            "operation completed but client said its was a failed operation",
-                                            messageClosure.Id, result);
-                                    executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation completed but client said its was a failed operation for work " + messageClosure.Id));
+                                    var excMsg = $"Unable to complete operation {messageClosure.Id} : Ececution is set to fail if task is cancelled";
+                                    resultMessage = new SetWorkErrorMessage(excMsg, messageClosure.Id, null);
+                                    executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, excMsg));
                                 }
                                 else
                                 {
-                                    resultMessage = new SetWorkSucceededMessage(result, messageClosure.Id);
-                                    executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation completed successfully for work " + messageClosure.Id));
+                                    var result = r.Result;
+                                    if (workFactory.IsAFailedResult(result))
+                                    {
+                                        resultMessage =
+                                            new SetWorkErrorMessage(
+                                                "operation completed but client said its was a failed operation",
+                                                messageClosure.Id, result);
+                                        executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation completed but client said its was a failed operation for work " + messageClosure.Id));
+                                    }
+                                    else
+                                    {
+                                        resultMessage = new SetWorkSucceededMessage(result, messageClosure.Id);
+                                        executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation completed successfully for work " + messageClosure.Id));
+                                    }
                                 }
+
                             }
+
 
                             if (!(resultMessage is SetWorkSucceededMessage) && workFactory.MaxRetryCount > 0)
                             {
@@ -68,7 +88,11 @@ namespace EasyExecute.ServiceWorker
                             }
 
                             return resultMessage;
-                        },TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously & TaskContinuationOptions.LongRunning & TaskContinuationOptions.PreferFairness);
+                        }
+                        , TaskContinuationOptions.AttachedToParent &
+                         TaskContinuationOptions.ExecuteSynchronously &
+                         TaskContinuationOptions.LongRunning &
+                         TaskContinuationOptions.PreferFairness);
                 }
                 else
                 {
@@ -82,6 +106,11 @@ namespace EasyExecute.ServiceWorker
                 Context.Parent.Tell(resultMessage);
             }
         }
+
+
+
+
+
 
         [Obsolete("This works as well but its 10x slower. however it will run code where configure await false is not well used")]
         private void Execute2(IActorRef parent, SetWorkMessage message, IActorRef sender, IActorRef executionQueryActorRef)
@@ -97,12 +126,12 @@ namespace EasyExecute.ServiceWorker
                 var workFactory = messageClosure.WorkFactory;
                 if (workFactory.RunAsyncMethod)
                 {
-                    Exception exception =null;
-                    object result=null;
+                    Exception exception = null;
+                    object result = null;
                     try
                     {
-                          result=   Task.Run(() => workFactory.ExecuteAsync(messageClosure.Command)).Result;
-                       }
+                        result = Task.Run(() => workFactory.ExecuteAsync(messageClosure.Command)).Result;
+                    }
                     catch (AggregateException ae)
                     {
                         exception = ae;
@@ -149,7 +178,7 @@ namespace EasyExecute.ServiceWorker
                         senderClosure.Tell(resultMessage);
                     }
 
-                    }
+                }
                 else
                 {
                     workFactory.Execute();

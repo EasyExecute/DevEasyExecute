@@ -11,5 +11,6 @@ namespace EasyExecute.Common
         public int MaxRetryCount { set; get; }
         public bool ExecuteReactively { set; get; }
         public Action<Worker> OnWorkerPurged { set; get; }
+        public bool FailExecutionIfTaskIsCancelled { get; set; }
     }
 }

@@ -8,6 +8,7 @@ using Xunit;
 
 namespace EasyExecute.Tests
 {
+   
     public class when_any_api_method_is_used
     {
         [Fact]
@@ -245,4 +246,7 @@ namespace EasyExecute.Tests
             }
         }
     }
+
+    
+
 }

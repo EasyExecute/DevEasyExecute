@@ -57,7 +57,7 @@ namespace EasyExecuteLib
                     , executionOptions.StoreCommands
                     , expiration
                     , executionOptions.DontCacheResultById
-                    , executionOptions.OnWorkerPurged);
+                    , executionOptions.OnWorkerPurged,executionOptions.FailExecutionIfTaskIsCancelled);
 
                 if (executionOptions.ExecuteReactively)
                 {

@@ -46,6 +46,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ArbitraryNameOperationIdObject.cs" />
+    <Compile Include="deadlock_test.cs" />
     <Compile Include="ExepectedTestResult.cs" />
     <Compile Include="TestClass.cs" />
     <Compile Include="TestHappyPathRequest.cs" />
