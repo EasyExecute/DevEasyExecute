@@ -30,10 +30,10 @@ namespace EasyExecute.ServiceWorker
                 var workFactory = messageClosure.WorkFactory;
                 if (workFactory.RunAsyncMethod)
                 {
-                    workFactory.ExecuteAsync(messageClosure.Command)
-                        .ContinueWith(r =>
+                    var workTask= workFactory.ExecuteAsync(messageClosure.Command);
+                    workTask.ConfigureAwait(false);
+                    workTask.ContinueWith(r =>
                         {
-
                             if (r.IsFaulted)
                             {
                                 var exceptionThrown = "";
@@ -90,9 +90,10 @@ namespace EasyExecute.ServiceWorker
                             return resultMessage;
                         }
                         , TaskContinuationOptions.AttachedToParent &
-                         TaskContinuationOptions.ExecuteSynchronously &
-                         TaskContinuationOptions.LongRunning &
-                         TaskContinuationOptions.PreferFairness);
+                         TaskContinuationOptions.ExecuteSynchronously //&
+                         //TaskContinuationOptions.LongRunning & dont start new thread
+                         //TaskContinuationOptions.PreferFairness
+                         );
                 }
                 else
                 {
@@ -106,14 +107,8 @@ namespace EasyExecute.ServiceWorker
                 Context.Parent.Tell(resultMessage);
             }
         }
-
-
-
-
-
-
-        [Obsolete("This works as well but its 10x slower. however it will run code where configure await false is not well used")]
-        private void Execute2(IActorRef parent, SetWorkMessage message, IActorRef sender, IActorRef executionQueryActorRef)
+        
+        private void ExecuteAsTopLevelInvocation(IActorRef parent, SetWorkMessage message, IActorRef sender, IActorRef executionQueryActorRef)
         {
             var messageClosure = message;
             var senderClosure = sender;
@@ -170,7 +165,7 @@ namespace EasyExecute.ServiceWorker
                     {
                         messageClosure.WorkFactory.MaxRetryCount--;
                         executionQueryActorRefClosure.Tell(new ArchiveWorkLogMessage(message.Id, "operation retrying for work " + messageClosure.Id + " retry count : " + messageClosure.WorkFactory.MaxRetryCount));
-                        Execute2(parentClosure, messageClosure, senderClosure, executionQueryActorRefClosure);
+                        ExecuteAsTopLevelInvocation(parentClosure, messageClosure, senderClosure, executionQueryActorRefClosure);
                     }
                     else
                     {
