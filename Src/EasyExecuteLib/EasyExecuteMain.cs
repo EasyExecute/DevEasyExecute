@@ -27,10 +27,8 @@ namespace EasyExecuteLib
             if (operation == null) throw new ArgumentNullException(nameof(operation));
             if (id == null) throw new ArgumentNullException(nameof(id));
             executionOptions = executionOptions ?? new ExecutionRequestOptions();
-
-            executionOptions.CacheExpirationPeriod =
-                executionOptions.CacheExpirationPeriod ?? _easyExecute
-                    .DefaultCacheExpirationPeriod;
+            executionOptions.CacheExpirationPeriod =executionOptions.CacheExpirationPeriod ?? _easyExecute.DefaultCacheExpirationPeriod;
+            var maxExecTime = maxExecutionTimePerAskCall ?? _easyExecute.DefaultMaxExecutionTimePerAskCall;
             if (transformResult == null)
             {
                 transformResult = (r) => r.Result;
@@ -41,7 +39,7 @@ namespace EasyExecuteLib
             }
 
             IEasyExecuteResponseMessage result;
-            var maxExecTime = maxExecutionTimePerAskCall ?? _easyExecute.DefaultMaxExecutionTimePerAskCall;
+           
             try
             {
                 var expiration = executionOptions.CacheExpirationPeriod == null
@@ -51,13 +49,15 @@ namespace EasyExecuteLib
                 var setWorkMessage = new SetWorkMessage(
                     id
                     , command
-                    , new WorkFactory(async (o) => await operation((TCommand)o).ConfigureAwait(false)
-                        , (r) => hasFailed?.Invoke((TResult)r) ?? false
+                    , new WorkFactory(
+                          async (o) => await operation((TCommand)o).ConfigureAwait(false)
+                        , (r) => (bool) hasFailed?.Invoke((TResult)r)
                         , executionOptions.MaxRetryCount)
                     , executionOptions.StoreCommands
                     , expiration
                     , executionOptions.DontCacheResultById
-                    , executionOptions.OnWorkerPurged,executionOptions.FailExecutionIfTaskIsCancelled);
+                    , executionOptions.OnWorkerPurged
+                    , executionOptions.FailExecutionIfTaskIsCancelled);
 
                 if (executionOptions.ExecuteReactively)
                 {
@@ -71,7 +71,10 @@ namespace EasyExecuteLib
             }
             catch (Exception e)
             {
-                result = new SetWorkErrorMessage($"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} - Exception : {e.Message} - {e.InnerException?.Message ?? ""}", id, null);
+                result = new SetWorkErrorMessage(
+                    $"Operation execution timed out . execution time exceeded the set max execution time of {maxExecTime.TotalMilliseconds} ms to worker id: {id} - Exception : {e.Message} - {e.InnerException?.Message ?? ""}"
+                  , id
+                  , null);
             }
             var finalResult = new ExecutionResult<TResult> { WorkerId = result.WorkerId };
             if (result is SetWorkErrorMessage)
@@ -91,7 +94,6 @@ namespace EasyExecuteLib
             else if (result is ExecuteReactivelyPlacedMessage)
             {
                 finalResult.Succeeded = true;
-                finalResult.Result = null;
             }
             else
             {

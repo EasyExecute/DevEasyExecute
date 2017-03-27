@@ -51,7 +51,7 @@ let projectName="EasyExecute"
 
 let BuildFn<'T>= match buildParam with
                   | "debug" -> MSBuildDebug
-                  | _       ->MSBuildRelease
+                  | _       -> MSBuildRelease
 
 
                   
@@ -123,11 +123,11 @@ Target "CreateNuget" (fun _ ->
             "EasyExecuteLib.nuspec"
 )
 
-Target "Deploy" (fun _ ->
-    !! (buildDir + "/**/*.*") 
-        -- "*.zip" 
-        |> Zip buildDir (deployDir + "EasyExecute." + version + ".zip")
-)
+//Target "Deploy" (fun _ ->
+//    !! (buildDir + "/**/*.*") 
+//        -- "*.zip" 
+//        |> Zip buildDir (deployDir + "EasyExecute." + version + ".zip")
+//)
 
 
 
@@ -141,7 +141,7 @@ Target "RemotePublishNuGet" (fun _ ->
 "Clean"
   ==> "Build"
   ==> "Test"
-  ==> "Deploy"
+  //==> "Deploy"
   ==> "CreateNuget"
   ==> "RemotePublishNuGet"
 
