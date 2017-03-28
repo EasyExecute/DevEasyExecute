@@ -9,3 +9,7 @@ xunit.assert
 xunit.core
 xunit.extensibility.core
 xunit.extensibility.execution
+Microsoft.AspNet.WebApi.WebHost
+Microsoft.AspNet.WebApi.Client
+Microsoft.AspNet.WebApi.Core
+Microsoft.AspNet.WebApi.SelfHost

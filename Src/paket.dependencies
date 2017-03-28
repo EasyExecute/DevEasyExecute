@@ -15,4 +15,7 @@ nuget xunit.runner.console
 nuget FsCheck 2.6.2
 nuget FsCheck.Xunit
 nuget FSharp.Core 4.0.1.7-alpha framework: >= net452
-
+nuget Microsoft.AspNet.WebApi.WebHost 5.2.3
+nuget Microsoft.AspNet.WebApi.Client 5.2.3
+nuget Microsoft.AspNet.WebApi.Core 5.2.3
+nuget Microsoft.AspNet.WebApi.SelfHost 5.2.3
